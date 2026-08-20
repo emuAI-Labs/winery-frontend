@@ -1,49 +1,77 @@
-import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import icon from '../../assets/icon.svg';
-import './App.css';
+import { useEffect } from 'react';
+import {
+  MemoryRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/authStore';
+import RequireAuth from '@/components/auth/RequireAuth';
+import LoginPage from '@/pages/LoginPage';
+import ChangePasswordPage from '@/pages/ChangePasswordPage';
+import './globals.css';
 
-function Hello() {
+function TillHome() {
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+
   return (
-    <div>
-      <div className="Hello">
-        <img width="200" alt="icon" src={icon} />
-      </div>
-      <h1>electron-react-boilerplate</h1>
-      <div className="Hello">
-        <a
-          href="https://electron-react-boilerplate.js.org/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="books">
-              📚
-            </span>
-            Read our docs
-          </button>
-        </a>
-        <a
-          href="https://github.com/sponsors/electron-react-boilerplate"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="folded hands">
-              🙏
-            </span>
-            Donate
-          </button>
-        </a>
-      </div>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+      <h1 className="text-2xl font-semibold">Welcome, {user?.fullName}</h1>
+      <p className="text-muted-foreground">Role: {user?.role}</p>
+      <Button variant="outline" onClick={() => logout()}>
+        Sign out
+      </Button>
+    </div>
+  );
+}
+
+function SplashScreen() {
+  return (
+    <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+      Loading…
     </div>
   );
 }
 
 export default function App() {
+  const status = useAuthStore((s) => s.status);
+  const bootstrap = useAuthStore((s) => s.bootstrap);
+
+  useEffect(() => {
+    bootstrap();
+  }, [bootstrap]);
+
+  if (status === 'booting') return <SplashScreen />;
+
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Hello />} />
+        <Route
+          path="/login"
+          element={
+            status === 'signedOut' ? <LoginPage /> : <Navigate to="/" replace />
+          }
+        />
+        <Route
+          path="/change-password"
+          element={
+            status === 'needsPasswordChange' ? (
+              <ChangePasswordPage />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/"
+          element={
+            <RequireAuth>
+              <TillHome />
+            </RequireAuth>
+          }
+        />
       </Routes>
     </Router>
   );
