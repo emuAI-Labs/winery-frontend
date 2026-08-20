@@ -25,7 +25,14 @@ import TransfersPage from '@/features/inventory/pages/TransfersPage';
 import RequisitionsPage from '@/features/inventory/pages/RequisitionsPage';
 import StockCountsListPage from '@/features/inventory/pages/StockCountsListPage';
 import StockCountDetailPage from '@/features/inventory/pages/StockCountDetailPage';
-import ReportsPage from '@/features/inventory/pages/ReportsPage';
+import InventoryReportsPage from '@/features/inventory/pages/ReportsPage';
+import TillOrdersPage from '@/features/sales/pages/TillOrdersPage';
+import OrderDetailPage from '@/features/sales/pages/OrderDetailPage';
+import MenuManagementPage from '@/features/sales/pages/MenuManagementPage';
+import MpesaReconciliationPage from '@/features/sales/pages/MpesaReconciliationPage';
+import ShiftsOversightPage from '@/features/shifts/pages/ShiftsOversightPage';
+import ExpensesPage from '@/features/expenses/pages/ExpensesPage';
+import FinancialReportsPage from '@/features/reports/pages/FinancialReportsPage';
 import './globals.css';
 
 function TillHome() {
@@ -37,6 +44,9 @@ function TillHome() {
       <h1 className="text-2xl font-semibold">Welcome, {user?.fullName}</h1>
       <p className="text-muted-foreground">Role: {user?.role}</p>
       <Button asChild>
+        <Link to="/till">Go to till</Link>
+      </Button>
+      <Button asChild variant="outline">
         <Link to="/inventory">Inventory & stock</Link>
       </Button>
       <Button variant="outline" onClick={() => logout()}>
@@ -98,6 +108,72 @@ export default function App() {
                 </RequireAuth>
               }
             />
+
+            {/* Till: order/tab management */}
+            <Route
+              path="/till"
+              element={
+                <RequireAuth>
+                  <AppShell />
+                </RequireAuth>
+              }
+            >
+              <Route index element={<TillOrdersPage />} />
+              <Route path=":id" element={<OrderDetailPage />} />
+            </Route>
+
+            {/* Sales: menu, M-PESA reconciliation, shifts, expenses, financial reports */}
+            <Route
+              path="/sales"
+              element={
+                <RequireAuth>
+                  <AppShell />
+                </RequireAuth>
+              }
+            >
+              <Route
+                path="menu"
+                element={
+                  <RequirePermission permission="inventory:manage">
+                    <MenuManagementPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="mpesa"
+                element={
+                  <RequirePermission permission="payments:confirm-mpesa">
+                    <MpesaReconciliationPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="shifts"
+                element={
+                  <RequirePermission permission="shifts:read">
+                    <ShiftsOversightPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="expenses"
+                element={
+                  <RequirePermission permission="expenses:read">
+                    <ExpensesPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="reports"
+                element={
+                  <RequirePermission permission="reports:read">
+                    <FinancialReportsPage />
+                  </RequirePermission>
+                }
+              />
+            </Route>
+
+            {/* Inventory & stock */}
             <Route
               path="/inventory"
               element={
@@ -163,7 +239,7 @@ export default function App() {
                   </RequirePermission>
                 }
               />
-              <Route path="reports" element={<ReportsPage />} />
+              <Route path="reports" element={<InventoryReportsPage />} />
             </Route>
           </Routes>
         </Router>

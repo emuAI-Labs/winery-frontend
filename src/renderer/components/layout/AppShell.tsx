@@ -9,12 +9,19 @@ import {
   AlertTriangle,
   ClipboardCheck,
   LogOut,
+  UtensilsCrossed,
+  Menu as MenuIcon,
+  Smartphone,
+  Clock,
+  Wallet,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 import { hasPermission } from '@/lib/permissions';
 import BranchSelect from '@/components/inventory/BranchSelect';
+import ShiftBar from '@/features/shifts/components/ShiftBar';
 
 interface NavItem {
   to: string;
@@ -23,84 +30,144 @@ interface NavItem {
   permission?: Parameters<typeof hasPermission>[1];
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { to: '/inventory', label: 'Stock overview', icon: LayoutDashboard },
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
   {
-    to: '/inventory/catalogue',
-    label: 'Catalogue',
-    icon: Package,
-    permission: 'inventory:manage',
+    label: 'Till',
+    items: [{ to: '/till', label: 'Orders & tabs', icon: UtensilsCrossed }],
   },
   {
-    to: '/inventory/receiving',
-    label: 'Receive stock',
-    icon: Truck,
-    permission: 'inventory:receive',
+    label: 'Sales',
+    items: [
+      {
+        to: '/sales/menu',
+        label: 'Menu',
+        icon: MenuIcon,
+        permission: 'inventory:manage',
+      },
+      {
+        to: '/sales/mpesa',
+        label: 'M-PESA reconciliation',
+        icon: Smartphone,
+        permission: 'payments:confirm-mpesa',
+      },
+      {
+        to: '/sales/shifts',
+        label: 'Shifts',
+        icon: Clock,
+        permission: 'shifts:read',
+      },
+      {
+        to: '/sales/expenses',
+        label: 'Expenses',
+        icon: Wallet,
+        permission: 'expenses:read',
+      },
+      {
+        to: '/sales/reports',
+        label: 'Financial reports',
+        icon: BarChart3,
+        permission: 'reports:read',
+      },
+    ],
   },
   {
-    to: '/inventory/losses',
-    label: 'Breakage & loss',
-    icon: AlertTriangle,
-    permission: 'inventory:loss',
+    label: 'Inventory',
+    items: [
+      { to: '/inventory', label: 'Stock overview', icon: LayoutDashboard },
+      {
+        to: '/inventory/catalogue',
+        label: 'Catalogue',
+        icon: Package,
+        permission: 'inventory:manage',
+      },
+      {
+        to: '/inventory/receiving',
+        label: 'Receive stock',
+        icon: Truck,
+        permission: 'inventory:receive',
+      },
+      {
+        to: '/inventory/losses',
+        label: 'Breakage & loss',
+        icon: AlertTriangle,
+        permission: 'inventory:loss',
+      },
+      {
+        to: '/inventory/transfers',
+        label: 'Transfers',
+        icon: ArrowLeftRight,
+        permission: 'inventory:transfer',
+      },
+      {
+        to: '/inventory/requisitions',
+        label: 'Requisitions',
+        icon: ShoppingCart,
+        permission: 'inventory:requisition',
+      },
+      {
+        to: '/inventory/stock-counts',
+        label: 'Stock takes',
+        icon: ClipboardCheck,
+        permission: 'inventory:count',
+      },
+      { to: '/inventory/reports', label: 'Reports', icon: ClipboardList },
+    ],
   },
-  {
-    to: '/inventory/transfers',
-    label: 'Transfers',
-    icon: ArrowLeftRight,
-    permission: 'inventory:transfer',
-  },
-  {
-    to: '/inventory/requisitions',
-    label: 'Requisitions',
-    icon: ShoppingCart,
-    permission: 'inventory:requisition',
-  },
-  {
-    to: '/inventory/stock-counts',
-    label: 'Stock takes',
-    icon: ClipboardCheck,
-    permission: 'inventory:count',
-  },
-  { to: '/inventory/reports', label: 'Reports', icon: ClipboardList },
 ];
 
 export default function AppShell() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
-  const visibleItems = NAV_ITEMS.filter(
-    (item) => !item.permission || hasPermission(user?.role, item.permission),
-  );
+  const visibleGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter(
+      (item) => !item.permission || hasPermission(user?.role, item.permission),
+    ),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <aside className="flex w-56 shrink-0 flex-col border-r bg-muted/30">
+      <aside className="flex w-60 shrink-0 flex-col overflow-y-auto border-r bg-muted/30">
         <div className="px-4 py-5">
           <h2 className="text-lg font-semibold">Winery POS</h2>
-          <p className="text-xs text-muted-foreground">Inventory & Stock</p>
+          <p className="text-xs text-muted-foreground">{user?.fullName}</p>
         </div>
-        <nav className="flex-1 space-y-1 px-2">
-          {visibleItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/inventory'}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground/80 hover:bg-accent hover:text-accent-foreground',
-                )
-              }
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </NavLink>
+        <nav className="flex-1 space-y-4 px-2">
+          {visibleGroups.map((group) => (
+            <div key={group.label}>
+              <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {group.label}
+              </p>
+              <div className="space-y-1">
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.to === '/inventory'}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                        isActive
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-foreground/80 hover:bg-accent hover:text-accent-foreground',
+                      )
+                    }
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
         <div className="border-t p-3">
-          <p className="truncate text-sm font-medium">{user?.fullName}</p>
           <p className="truncate text-xs capitalize text-muted-foreground">
             {user?.role}
           </p>
@@ -121,9 +188,12 @@ export default function AppShell() {
             to="/"
             className="text-sm text-muted-foreground hover:text-foreground"
           >
-            ← Back to till
+            ← Home
           </NavLink>
-          <BranchSelect />
+          <div className="flex items-center gap-2">
+            <ShiftBar />
+            <BranchSelect />
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto p-6">
           <Outlet />
