@@ -14,6 +14,20 @@ module.exports = {
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': 'error',
   },
+  overrides: [
+    {
+      // shadcn/ui primitives: generated components that wrap a Radix/native
+      // element and forward all props through by design.
+      files: ['src/renderer/components/ui/**/*.tsx'],
+      rules: {
+        'react/jsx-props-no-spreading': 'off',
+        'react/require-default-props': 'off',
+        'react/prop-types': 'off',
+        'jsx-a11y/heading-has-content': 'off',
+        'import/prefer-default-export': 'off',
+      },
+    },
+  ],
   parserOptions: {
     ecmaVersion: 2022,
     sourceType: 'module',
