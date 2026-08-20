@@ -6,7 +6,7 @@ import {
   Navigate,
   Link,
 } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
@@ -16,6 +16,7 @@ import LoginPage from '@/pages/LoginPage';
 import ChangePasswordPage from '@/pages/ChangePasswordPage';
 import { queryClient } from '@/lib/queryClient';
 import { BranchProvider } from '@/context/BranchContext';
+import { ConnectivityProvider } from '@/context/ConnectivityContext';
 import AppShell from '@/components/layout/AppShell';
 import StockOverviewPage from '@/features/inventory/pages/StockOverviewPage';
 import CataloguePage from '@/features/inventory/pages/CataloguePage';
@@ -33,7 +34,23 @@ import MpesaReconciliationPage from '@/features/sales/pages/MpesaReconciliationP
 import ShiftsOversightPage from '@/features/shifts/pages/ShiftsOversightPage';
 import ExpensesPage from '@/features/expenses/pages/ExpensesPage';
 import FinancialReportsPage from '@/features/reports/pages/FinancialReportsPage';
+import SyncIssuesPage from '@/features/sync/pages/SyncIssuesPage';
 import './globals.css';
+
+/** Once a queued outbox item finally syncs, the main process broadcasts the
+ * same query-key prefixes each hook's own onSuccess would have invalidated
+ * — this is the one global listener that applies them, so "last-write-wins,
+ * always refetch after sync" holds without every hook needing its own
+ * offline-aware invalidation logic. */
+function SyncInvalidationBridge() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    return window.sync.onInvalidate((keys) => {
+      keys.forEach((key) => qc.invalidateQueries({ queryKey: key }));
+    });
+  }, [qc]);
+  return null;
+}
 
 function TillHome() {
   const user = useAuthStore((s) => s.user);
@@ -76,174 +93,185 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BranchProvider>
-        <Toaster richColors position="top-right" />
-        <Router>
-          <Routes>
-            <Route
-              path="/login"
-              element={
-                status === 'signedOut' ? (
-                  <LoginPage />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route
-              path="/change-password"
-              element={
-                status === 'needsPasswordChange' ? (
-                  <ChangePasswordPage />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route
-              path="/"
-              element={
-                <RequireAuth>
-                  <TillHome />
-                </RequireAuth>
-              }
-            />
+      <ConnectivityProvider>
+        <BranchProvider>
+          <Toaster richColors position="top-right" />
+          <SyncInvalidationBridge />
+          <Router>
+            <Routes>
+              <Route
+                path="/login"
+                element={
+                  status === 'signedOut' ? (
+                    <LoginPage />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route
+                path="/change-password"
+                element={
+                  status === 'needsPasswordChange' ? (
+                    <ChangePasswordPage />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route
+                path="/"
+                element={
+                  <RequireAuth>
+                    <TillHome />
+                  </RequireAuth>
+                }
+              />
 
-            {/* Till: order/tab management */}
-            <Route
-              path="/till"
-              element={
-                <RequireAuth>
-                  <AppShell />
-                </RequireAuth>
-              }
-            >
-              <Route index element={<TillOrdersPage />} />
-              <Route path=":id" element={<OrderDetailPage />} />
-            </Route>
+              {/* Till: order/tab management */}
+              <Route
+                path="/till"
+                element={
+                  <RequireAuth>
+                    <AppShell />
+                  </RequireAuth>
+                }
+              >
+                <Route index element={<TillOrdersPage />} />
+                <Route path=":id" element={<OrderDetailPage />} />
+              </Route>
 
-            {/* Sales: menu, M-PESA reconciliation, shifts, expenses, financial reports */}
-            <Route
-              path="/sales"
-              element={
-                <RequireAuth>
-                  <AppShell />
-                </RequireAuth>
-              }
-            >
+              {/* Sales: menu, M-PESA reconciliation, shifts, expenses, financial reports */}
               <Route
-                path="menu"
+                path="/sales"
                 element={
-                  <RequirePermission permission="inventory:manage">
-                    <MenuManagementPage />
-                  </RequirePermission>
+                  <RequireAuth>
+                    <AppShell />
+                  </RequireAuth>
                 }
-              />
-              <Route
-                path="mpesa"
-                element={
-                  <RequirePermission permission="payments:confirm-mpesa">
-                    <MpesaReconciliationPage />
-                  </RequirePermission>
-                }
-              />
-              <Route
-                path="shifts"
-                element={
-                  <RequirePermission permission="shifts:read">
-                    <ShiftsOversightPage />
-                  </RequirePermission>
-                }
-              />
-              <Route
-                path="expenses"
-                element={
-                  <RequirePermission permission="expenses:read">
-                    <ExpensesPage />
-                  </RequirePermission>
-                }
-              />
-              <Route
-                path="reports"
-                element={
-                  <RequirePermission permission="reports:read">
-                    <FinancialReportsPage />
-                  </RequirePermission>
-                }
-              />
-            </Route>
+              >
+                <Route
+                  path="menu"
+                  element={
+                    <RequirePermission permission="inventory:manage">
+                      <MenuManagementPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="mpesa"
+                  element={
+                    <RequirePermission permission="payments:confirm-mpesa">
+                      <MpesaReconciliationPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="shifts"
+                  element={
+                    <RequirePermission permission="shifts:read">
+                      <ShiftsOversightPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="expenses"
+                  element={
+                    <RequirePermission permission="expenses:read">
+                      <ExpensesPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="reports"
+                  element={
+                    <RequirePermission permission="reports:read">
+                      <FinancialReportsPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="sync-issues"
+                  element={
+                    <RequirePermission permission="sync:manage">
+                      <SyncIssuesPage />
+                    </RequirePermission>
+                  }
+                />
+              </Route>
 
-            {/* Inventory & stock */}
-            <Route
-              path="/inventory"
-              element={
-                <RequireAuth>
-                  <AppShell />
-                </RequireAuth>
-              }
-            >
-              <Route index element={<StockOverviewPage />} />
+              {/* Inventory & stock */}
               <Route
-                path="catalogue"
+                path="/inventory"
                 element={
-                  <RequirePermission permission="inventory:manage">
-                    <CataloguePage />
-                  </RequirePermission>
+                  <RequireAuth>
+                    <AppShell />
+                  </RequireAuth>
                 }
-              />
-              <Route
-                path="receiving"
-                element={
-                  <RequirePermission permission="inventory:receive">
-                    <ReceivingPage />
-                  </RequirePermission>
-                }
-              />
-              <Route
-                path="losses"
-                element={
-                  <RequirePermission permission="inventory:loss">
-                    <LossesPage />
-                  </RequirePermission>
-                }
-              />
-              <Route
-                path="transfers"
-                element={
-                  <RequirePermission permission="inventory:transfer">
-                    <TransfersPage />
-                  </RequirePermission>
-                }
-              />
-              <Route
-                path="requisitions"
-                element={
-                  <RequirePermission permission="inventory:requisition">
-                    <RequisitionsPage />
-                  </RequirePermission>
-                }
-              />
-              <Route
-                path="stock-counts"
-                element={
-                  <RequirePermission permission="inventory:count">
-                    <StockCountsListPage />
-                  </RequirePermission>
-                }
-              />
-              <Route
-                path="stock-counts/:id"
-                element={
-                  <RequirePermission permission="inventory:count">
-                    <StockCountDetailPage />
-                  </RequirePermission>
-                }
-              />
-              <Route path="reports" element={<InventoryReportsPage />} />
-            </Route>
-          </Routes>
-        </Router>
-      </BranchProvider>
+              >
+                <Route index element={<StockOverviewPage />} />
+                <Route
+                  path="catalogue"
+                  element={
+                    <RequirePermission permission="inventory:manage">
+                      <CataloguePage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="receiving"
+                  element={
+                    <RequirePermission permission="inventory:receive">
+                      <ReceivingPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="losses"
+                  element={
+                    <RequirePermission permission="inventory:loss">
+                      <LossesPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="transfers"
+                  element={
+                    <RequirePermission permission="inventory:transfer">
+                      <TransfersPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="requisitions"
+                  element={
+                    <RequirePermission permission="inventory:requisition">
+                      <RequisitionsPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="stock-counts"
+                  element={
+                    <RequirePermission permission="inventory:count">
+                      <StockCountsListPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="stock-counts/:id"
+                  element={
+                    <RequirePermission permission="inventory:count">
+                      <StockCountDetailPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route path="reports" element={<InventoryReportsPage />} />
+              </Route>
+            </Routes>
+          </Router>
+        </BranchProvider>
+      </ConnectivityProvider>
     </QueryClientProvider>
   );
 }
