@@ -7,6 +7,7 @@ import {
   AuthUser,
   BootstrapResult,
 } from '../shared/authTypes';
+import { OutboxIssue, SyncStatus } from '../shared/syncTypes';
 
 export type Channels = 'ipc-example';
 
@@ -55,10 +56,33 @@ const apiHandler = {
     ipcRenderer.invoke('api:request', options),
 };
 
+const syncHandler = {
+  getStatus: (): Promise<SyncStatus> => ipcRenderer.invoke('sync:getStatus'),
+  listIssues: (): Promise<OutboxIssue[]> =>
+    ipcRenderer.invoke('sync:listIssues'),
+  retryIssue: (id: string): Promise<void> =>
+    ipcRenderer.invoke('sync:retryIssue', id),
+  discardIssue: (id: string): Promise<void> =>
+    ipcRenderer.invoke('sync:discardIssue', id),
+  onStatusChange(cb: (status: SyncStatus) => void): () => void {
+    const listener = (_event: IpcRendererEvent, status: SyncStatus) =>
+      cb(status);
+    ipcRenderer.on('sync:status-changed', listener);
+    return () => ipcRenderer.removeListener('sync:status-changed', listener);
+  },
+  onInvalidate(cb: (keys: string[][]) => void): () => void {
+    const listener = (_event: IpcRendererEvent, keys: string[][]) => cb(keys);
+    ipcRenderer.on('sync:invalidate', listener);
+    return () => ipcRenderer.removeListener('sync:invalidate', listener);
+  },
+};
+
 contextBridge.exposeInMainWorld('electron', electronHandler);
 contextBridge.exposeInMainWorld('auth', authHandler);
 contextBridge.exposeInMainWorld('api', apiHandler);
+contextBridge.exposeInMainWorld('sync', syncHandler);
 
 export type ElectronHandler = typeof electronHandler;
 export type AuthHandler = typeof authHandler;
 export type ApiHandler = typeof apiHandler;
+export type SyncHandler = typeof syncHandler;

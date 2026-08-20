@@ -15,8 +15,15 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import registerAuthIpc from './auth/ipc';
+import { getDb } from './db/connection';
+import registerSyncIpc from './sync/ipc';
+import { startBackgroundDrainTimer } from './sync/drain';
+import { setMainWindow } from './windowRegistry';
 
+getDb();
 registerAuthIpc();
+registerSyncIpc();
+startBackgroundDrainTimer();
 
 class AppUpdater {
   constructor() {
@@ -84,6 +91,7 @@ const createWindow = async () => {
     },
   });
 
+  setMainWindow(mainWindow);
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
   mainWindow.on('ready-to-show', () => {
@@ -99,6 +107,7 @@ const createWindow = async () => {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+    setMainWindow(null);
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);

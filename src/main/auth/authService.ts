@@ -146,6 +146,9 @@ class AuthService {
   async authorizedRequest<T = unknown>(
     options: ApiRequestOptions,
     _isRetry = false,
+    /** set only by the outbox drain loop when replaying a queued mutation —
+     * the live/first-attempt path never has an id to key yet */
+    idempotencyKey: string | undefined = undefined,
   ): Promise<ApiResponse<T>> {
     const ready = await this.ensureFreshAccessToken();
     if (!ready || !this.accessToken) {
@@ -164,7 +167,10 @@ class AuthService {
         method: options.method || 'GET',
         data: options.body,
         params: options.query,
-        headers: { Authorization: `Bearer ${this.accessToken}` },
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+          ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
+        },
       });
       return { ok: true, status, data };
     } catch (err) {
@@ -176,7 +182,7 @@ class AuthService {
         this.accessToken = null;
         const refreshed = await this.ensureFreshAccessToken();
         if (refreshed) {
-          return this.authorizedRequest<T>(options, true);
+          return this.authorizedRequest<T>(options, true, idempotencyKey);
         }
         if (!tokenStore.getRefreshToken()) {
           return {

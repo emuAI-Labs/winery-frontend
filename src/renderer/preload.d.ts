@@ -1,4 +1,9 @@
-import { ElectronHandler, AuthHandler, ApiHandler } from '../main/preload';
+import {
+  ElectronHandler,
+  AuthHandler,
+  ApiHandler,
+  SyncHandler,
+} from '../main/preload';
 
 declare global {
   // eslint-disable-next-line no-unused-vars
@@ -6,6 +11,7 @@ declare global {
     electron: ElectronHandler;
     auth: AuthHandler;
     api: ApiHandler;
+    sync: SyncHandler;
   }
 }
 
