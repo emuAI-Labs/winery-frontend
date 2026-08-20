@@ -22,7 +22,9 @@ export type SalesPermission =
   | 'shifts:read'
   | 'expenses:read'
   | 'expenses:manage'
-  | 'reports:read';
+  | 'reports:read'
+  | 'reports:manage'
+  | 'sync:manage';
 
 export type Permission = InventoryPermission | SalesPermission;
 
@@ -57,6 +59,8 @@ const PERMISSION_MIN_ROLE: Record<Permission, UserRole> = {
   'expenses:read': 'supervisor',
   'expenses:manage': 'manager',
   'reports:read': 'manager',
+  'reports:manage': 'manager',
+  'sync:manage': 'manager',
 };
 
 export function hasPermission(

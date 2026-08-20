@@ -15,11 +15,15 @@ import {
   Clock,
   Wallet,
   BarChart3,
+  WifiOff,
+  AlertOctagon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/store/authStore';
 import { hasPermission } from '@/lib/permissions';
+import { useConnectivity } from '@/context/ConnectivityContext';
 import BranchSelect from '@/components/inventory/BranchSelect';
 import ShiftBar from '@/features/shifts/components/ShiftBar';
 
@@ -69,9 +73,15 @@ const NAV_GROUPS: NavGroup[] = [
       },
       {
         to: '/sales/reports',
-        label: 'Financial reports',
+        label: 'Reports',
         icon: BarChart3,
         permission: 'reports:read',
+      },
+      {
+        to: '/sales/sync-issues',
+        label: 'Sync issues',
+        icon: AlertOctagon,
+        permission: 'sync:manage',
       },
     ],
   },
@@ -119,6 +129,29 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ];
+
+function ConnectivityBanner() {
+  const { connectivity, outboxPendingCount, lastCachedAt } = useConnectivity();
+
+  if (connectivity === 'online' && outboxPendingCount === 0) return null;
+
+  return (
+    <div className="flex items-center gap-2">
+      {connectivity === 'offline' && (
+        <span className="flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800">
+          <WifiOff className="h-3 w-3" />
+          Offline
+          {lastCachedAt
+            ? ` — data as of ${new Date(lastCachedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+            : ''}
+        </span>
+      )}
+      {outboxPendingCount > 0 && (
+        <Badge variant="secondary">{outboxPendingCount} syncing</Badge>
+      )}
+    </div>
+  );
+}
 
 export default function AppShell() {
   const user = useAuthStore((s) => s.user);
@@ -191,6 +224,7 @@ export default function AppShell() {
             ← Home
           </NavLink>
           <div className="flex items-center gap-2">
+            <ConnectivityBanner />
             <ShiftBar />
             <BranchSelect />
           </div>
