@@ -40,6 +40,9 @@ export interface OrderLine {
   notes?: string | null;
   servedAt?: string | null;
   menuItem?: MenuItem;
+  /** true when this line was added offline and its price is a client-side
+   * estimate — corrected automatically once it syncs */
+  estimated?: boolean;
 }
 
 export interface Bill {
@@ -89,6 +92,9 @@ export interface Payment {
   mpesaStatus?: MpesaStatus | null;
   isVoided: boolean;
   createdAt: string;
+  /** true when this payment was recorded offline and hasn't reached the
+   * server yet */
+  unsynced?: boolean;
 }
 
 export interface ReceiptData {
@@ -166,4 +172,69 @@ export interface ExpenseSummaryRow {
   category: ExpenseCategory;
   totalCents: number;
   count: number;
+}
+
+export interface SalesSummary {
+  totalRevenueCents: number;
+  paidBillCount: number;
+  orderCount: number;
+  averageBillCents: number;
+}
+
+export interface TopSellerRow {
+  menuItemId: string;
+  name: string;
+  quantitySold: number;
+  revenueCents: number;
+}
+
+/** dayOfWeek here is Postgres EXTRACT(dow): 0 = Sunday .. 6 = Saturday —
+ * deliberately NOT the same convention as PricingRule.daysOfWeek (ISO,
+ * 1 = Monday .. 7 = Sunday). Never reuse one "day of week" util for both. */
+export interface PeakHourRow {
+  dayOfWeek: number;
+  hour: number;
+  orderCount: number;
+}
+
+export interface CustomerTrendRow {
+  customerRef: string;
+  visitCount: number;
+  totalSpentCents: number;
+  averageSpendCents: number;
+}
+
+export interface BranchSalesSummary extends SalesSummary {
+  branchId: string;
+  branchName: string;
+}
+
+export type ReportType =
+  | 'sales_summary'
+  | 'top_sellers'
+  | 'peak_hours'
+  | 'profitability'
+  | 'shift_variance'
+  | 'expense_summary'
+  | 'customer_trends'
+  | 'dashboard';
+
+export interface ReportDefinition {
+  id: string;
+  name: string;
+  reportType: ReportType;
+  branchId?: string | null;
+  filters?: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export type ReportScheduleFrequency = 'daily' | 'weekly' | 'monthly';
+
+export interface ReportSchedule {
+  id: string;
+  reportDefinitionId: string;
+  frequency: ReportScheduleFrequency;
+  recipientEmails: string[];
+  nextRunAt: string;
+  isActive: boolean;
 }
