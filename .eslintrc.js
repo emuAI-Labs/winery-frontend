@@ -13,12 +13,23 @@ module.exports = {
     '@typescript-eslint/no-shadow': 'error',
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': 'error',
+    // Functional components document optional props via `?:` in their TS
+    // interface; a parallel defaultProps declaration is redundant busywork
+    // this codebase doesn't do anywhere (React no longer supports
+    // defaultProps on function components without a deprecation warning).
+    'react/require-default-props': 'off',
+    // Hook/util files in this codebase consistently use named exports
+    // (useItems, useRecipes, ...) even when a file has just one right now.
+    'import/prefer-default-export': 'off',
+    // "busy ? 'Saving…' : isEdit ? 'Save' : 'Create'" three-way button-label
+    // switches read fine flat; used throughout the inventory forms.
+    'no-nested-ternary': 'off',
   },
   overrides: [
     {
       // shadcn/ui primitives: generated components that wrap a Radix/native
       // element and forward all props through by design.
-      files: ['src/renderer/components/ui/**/*.tsx'],
+      files: ['src/renderer/components/ui/**/*.{ts,tsx}'],
       rules: {
         'react/jsx-props-no-spreading': 'off',
         'react/require-default-props': 'off',
