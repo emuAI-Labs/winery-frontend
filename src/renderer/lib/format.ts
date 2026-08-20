@@ -38,6 +38,13 @@ export function formatMoney(value: number | string | null | undefined): string {
   return currencyFormatter.format(n);
 }
 
+/** Sales/billing money is always integer cents ("priceCents: 380000" =
+ * 3,800.00) — a different convention from the inventory module's decimal
+ * costPrice. Divide by 100 only at render time; never mix the two. */
+export function formatCents(cents: number | null | undefined): string {
+  return currencyFormatter.format((cents ?? 0) / 100);
+}
+
 const dateFormatter = new Intl.DateTimeFormat('en-KE', {
   day: '2-digit',
   month: 'short',
