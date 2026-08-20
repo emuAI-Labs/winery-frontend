@@ -62,9 +62,24 @@ export interface ApiRequestOptions {
   query?: Record<string, string | number | undefined>;
 }
 
+export interface ApiResponseMeta {
+  /** true when this response was served from the local cache because the
+   * backend was unreachable */
+  servedFromCache?: boolean;
+  /** epoch ms the cached copy was last refreshed from the server */
+  cachedAt?: number;
+  /** true when a mutation was queued locally instead of sent immediately */
+  queued?: boolean;
+  outboxId?: string;
+  /** true when a queued mutation's response was synthesized client-side
+   * (e.g. an estimated price) and will be corrected once it syncs */
+  estimated?: boolean;
+}
+
 export interface ApiResponse<T = unknown> {
   ok: boolean;
   status: number;
   data?: T;
   error?: AuthError;
+  meta?: ApiResponseMeta;
 }
