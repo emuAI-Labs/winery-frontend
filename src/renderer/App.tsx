@@ -4,12 +4,28 @@ import {
   Routes,
   Route,
   Navigate,
+  Link,
 } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 import RequireAuth from '@/components/auth/RequireAuth';
+import RequirePermission from '@/components/auth/RequirePermission';
 import LoginPage from '@/pages/LoginPage';
 import ChangePasswordPage from '@/pages/ChangePasswordPage';
+import { queryClient } from '@/lib/queryClient';
+import { BranchProvider } from '@/context/BranchContext';
+import AppShell from '@/components/layout/AppShell';
+import StockOverviewPage from '@/features/inventory/pages/StockOverviewPage';
+import CataloguePage from '@/features/inventory/pages/CataloguePage';
+import ReceivingPage from '@/features/inventory/pages/ReceivingPage';
+import LossesPage from '@/features/inventory/pages/LossesPage';
+import TransfersPage from '@/features/inventory/pages/TransfersPage';
+import RequisitionsPage from '@/features/inventory/pages/RequisitionsPage';
+import StockCountsListPage from '@/features/inventory/pages/StockCountsListPage';
+import StockCountDetailPage from '@/features/inventory/pages/StockCountDetailPage';
+import ReportsPage from '@/features/inventory/pages/ReportsPage';
 import './globals.css';
 
 function TillHome() {
@@ -20,6 +36,9 @@ function TillHome() {
     <div className="flex min-h-screen flex-col items-center justify-center gap-4">
       <h1 className="text-2xl font-semibold">Welcome, {user?.fullName}</h1>
       <p className="text-muted-foreground">Role: {user?.role}</p>
+      <Button asChild>
+        <Link to="/inventory">Inventory & stock</Link>
+      </Button>
       <Button variant="outline" onClick={() => logout()}>
         Sign out
       </Button>
@@ -46,33 +65,109 @@ export default function App() {
   if (status === 'booting') return <SplashScreen />;
 
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            status === 'signedOut' ? <LoginPage /> : <Navigate to="/" replace />
-          }
-        />
-        <Route
-          path="/change-password"
-          element={
-            status === 'needsPasswordChange' ? (
-              <ChangePasswordPage />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
-        <Route
-          path="/"
-          element={
-            <RequireAuth>
-              <TillHome />
-            </RequireAuth>
-          }
-        />
-      </Routes>
-    </Router>
+    <QueryClientProvider client={queryClient}>
+      <BranchProvider>
+        <Toaster richColors position="top-right" />
+        <Router>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                status === 'signedOut' ? (
+                  <LoginPage />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route
+              path="/change-password"
+              element={
+                status === 'needsPasswordChange' ? (
+                  <ChangePasswordPage />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route
+              path="/"
+              element={
+                <RequireAuth>
+                  <TillHome />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/inventory"
+              element={
+                <RequireAuth>
+                  <AppShell />
+                </RequireAuth>
+              }
+            >
+              <Route index element={<StockOverviewPage />} />
+              <Route
+                path="catalogue"
+                element={
+                  <RequirePermission permission="inventory:manage">
+                    <CataloguePage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="receiving"
+                element={
+                  <RequirePermission permission="inventory:receive">
+                    <ReceivingPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="losses"
+                element={
+                  <RequirePermission permission="inventory:loss">
+                    <LossesPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="transfers"
+                element={
+                  <RequirePermission permission="inventory:transfer">
+                    <TransfersPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="requisitions"
+                element={
+                  <RequirePermission permission="inventory:requisition">
+                    <RequisitionsPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="stock-counts"
+                element={
+                  <RequirePermission permission="inventory:count">
+                    <StockCountsListPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="stock-counts/:id"
+                element={
+                  <RequirePermission permission="inventory:count">
+                    <StockCountDetailPage />
+                  </RequirePermission>
+                }
+              />
+              <Route path="reports" element={<ReportsPage />} />
+            </Route>
+          </Routes>
+        </Router>
+      </BranchProvider>
+    </QueryClientProvider>
   );
 }
