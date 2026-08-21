@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertTriangle, PackageSearch } from 'lucide-react';
 import {
   Table,
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useBranches } from '@/context/BranchContext';
+import PaginationControls from '@/components/ui/pagination-controls';
 import { formatQty } from '@/lib/format';
 import {
   useConsolidatedStock,
@@ -26,16 +27,28 @@ export default function StockOverviewPage() {
   const [search, setSearch] = useState('');
   const [lowStockOnly, setLowStockOnly] = useState(false);
   const [viewAllBranches, setViewAllBranches] = useState(false);
+  const [offset, setOffset] = useState(0);
 
   const branchId = viewAllBranches
     ? undefined
     : (selectedBranchId ?? undefined);
+  // Capped at the API's max (100) rather than the 50 default — this is a
+  // manager-facing overview, and the search box below only filters whatever
+  // page is loaded (the API has no search param on this endpoint), so a
+  // bigger page keeps that search useful without needing full server-side
+  // search here.
   const { data, isLoading, error } = useConsolidatedStock({
     branchId,
     lowStockOnly,
+    limit: 100,
+    offset,
   });
   const { data: expiry } = useExpiryWarnings(selectedBranchId ?? undefined, 14);
   const { data: deadStock } = useDeadStock(selectedBranchId ?? undefined, 30);
+
+  useEffect(() => {
+    setOffset(0);
+  }, [branchId, lowStockOnly]);
 
   const items = (data?.items ?? []).filter(
     (i) =>
@@ -54,7 +67,7 @@ export default function StockOverviewPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-semibold">
-            {data?.items.length ?? '—'}
+            {data?.total ?? '—'}
           </CardContent>
         </Card>
         <Card>
@@ -64,7 +77,7 @@ export default function StockOverviewPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-semibold">
-            {expiry?.warnings.length ?? '—'}
+            {expiry?.total ?? '—'}
           </CardContent>
         </Card>
         <Card>
@@ -75,7 +88,7 @@ export default function StockOverviewPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-semibold">
-            {deadStock?.items.length ?? '—'}
+            {deadStock?.total ?? '—'}
           </CardContent>
         </Card>
       </div>
@@ -156,6 +169,14 @@ export default function StockOverviewPage() {
           </TableBody>
         </Table>
       </QueryState>
+      {data && (
+        <PaginationControls
+          offset={offset}
+          limit={data.limit}
+          total={data.total}
+          onOffsetChange={setOffset}
+        />
+      )}
       {!viewAllBranches && !selectedBranchId && (
         <p className="text-sm text-muted-foreground">
           Select a branch above, or switch to &quot;All branches&quot; to see

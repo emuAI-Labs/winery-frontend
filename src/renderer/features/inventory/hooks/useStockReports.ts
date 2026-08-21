@@ -8,21 +8,31 @@ import {
   PourVariance,
 } from '../../../../shared/inventoryTypes';
 
+interface Page {
+  total: number;
+  limit: number;
+  offset: number;
+}
+
 export function useConsolidatedStock(opts: {
   branchId?: string;
   category?: string;
   lowStockOnly?: boolean;
+  limit?: number;
+  offset?: number;
 }) {
   return useQuery({
     queryKey: ['stock', 'consolidated', opts],
     queryFn: () =>
-      apiRequest<{ items: ConsolidatedStockItem[] }>({
+      apiRequest<{ items: ConsolidatedStockItem[] } & Page>({
         method: 'GET',
         path: '/inventory/stock',
         query: {
           branchId: opts.branchId,
           category: opts.category,
           lowStockOnly: opts.lowStockOnly ? 'true' : undefined,
+          limit: opts.limit ?? 50,
+          offset: opts.offset ?? 0,
         },
       }),
   });
@@ -31,29 +41,43 @@ export function useConsolidatedStock(opts: {
 export function useExpiryWarnings(
   branchId: string | undefined,
   withinDays: number,
+  opts: { limit?: number; offset?: number } = {},
 ) {
   return useQuery({
-    queryKey: ['expiry-warnings', branchId, withinDays],
+    queryKey: ['expiry-warnings', branchId, withinDays, opts],
     queryFn: () =>
-      // API wraps the list as { batches: [...] }, not { warnings: [...] } —
-      // normalized to `warnings` here so every consumer keeps the same shape.
-      apiRequest<{ batches: ExpiryWarning[] }>({
+      apiRequest<{ items: ExpiryWarning[] } & Page>({
         method: 'GET',
         path: '/inventory/expiry-warnings',
-        query: { branchId, withinDays },
+        query: {
+          branchId,
+          withinDays,
+          limit: opts.limit ?? 50,
+          offset: opts.offset ?? 0,
+        },
       }),
-    select: (data) => ({ warnings: data.batches }),
+    // normalized to `warnings` so consumers don't have to change on rename
+    select: (data) => ({ ...data, warnings: data.items }),
   });
 }
 
-export function useDeadStock(branchId: string | undefined, sinceDays: number) {
+export function useDeadStock(
+  branchId: string | undefined,
+  sinceDays: number,
+  opts: { limit?: number; offset?: number } = {},
+) {
   return useQuery({
-    queryKey: ['dead-stock', branchId, sinceDays],
+    queryKey: ['dead-stock', branchId, sinceDays, opts],
     queryFn: () =>
-      apiRequest<{ items: DeadStockItem[] }>({
+      apiRequest<{ items: DeadStockItem[] } & Page>({
         method: 'GET',
         path: '/inventory/dead-stock',
-        query: { branchId, sinceDays },
+        query: {
+          branchId,
+          sinceDays,
+          limit: opts.limit ?? 50,
+          offset: opts.offset ?? 0,
+        },
       }),
     enabled: !!branchId,
   });

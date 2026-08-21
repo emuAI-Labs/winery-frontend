@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import BranchSelect from '@/components/inventory/BranchSelect';
+import PaginationControls from '@/components/ui/pagination-controls';
 import { useBranches } from '@/context/BranchContext';
 import { daysUntil, formatDate, formatDateTime, formatQty } from '@/lib/format';
 import { useAllItems } from '../hooks/useAllItems';
@@ -27,9 +28,11 @@ import QueryState from '../components/QueryState';
 function ExpiryTab() {
   const { selectedBranchId } = useBranches();
   const [withinDays, setWithinDays] = useState(30);
+  const [offset, setOffset] = useState(0);
   const { data, isLoading, error } = useExpiryWarnings(
     selectedBranchId ?? undefined,
     withinDays,
+    { offset },
   );
 
   return (
@@ -65,17 +68,16 @@ function ExpiryTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data?.warnings.map((w, idx) => {
+            {data?.warnings.map((w) => {
               const days = daysUntil(w.expiryDate);
               return (
-                // eslint-disable-next-line react/no-array-index-key -- API gives no stable batch id
-                <TableRow key={idx}>
+                <TableRow key={w.batchId}>
                   <TableCell>{w.itemName}</TableCell>
                   <TableCell>{w.branchName}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {w.batchCode ?? '—'}
                   </TableCell>
-                  <TableCell>{w.quantity}</TableCell>
+                  <TableCell>{w.quantityRemaining}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {formatDate(w.expiryDate)}
@@ -90,6 +92,14 @@ function ExpiryTab() {
           </TableBody>
         </Table>
       </QueryState>
+      {data && (
+        <PaginationControls
+          offset={offset}
+          limit={data.limit}
+          total={data.total}
+          onOffsetChange={setOffset}
+        />
+      )}
     </div>
   );
 }
@@ -97,9 +107,11 @@ function ExpiryTab() {
 function DeadStockTab() {
   const { selectedBranchId } = useBranches();
   const [sinceDays, setSinceDays] = useState(30);
+  const [offset, setOffset] = useState(0);
   const { data, isLoading, error } = useDeadStock(
     selectedBranchId ?? undefined,
     sinceDays,
+    { offset },
   );
 
   if (!selectedBranchId) {
@@ -143,19 +155,22 @@ function DeadStockTab() {
           <TableBody>
             {data?.items.map((item) => (
               <TableRow key={item.itemId}>
-                <TableCell>
-                  {item.name}{' '}
-                  <span className="text-xs text-muted-foreground">
-                    ({item.sku})
-                  </span>
-                </TableCell>
+                <TableCell>{item.itemName}</TableCell>
                 <TableCell>{item.quantityOnHand}</TableCell>
-                <TableCell>{item.sinceDays} days</TableCell>
+                <TableCell>at least {sinceDays} days</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </QueryState>
+      {data && (
+        <PaginationControls
+          offset={offset}
+          limit={data.limit}
+          total={data.total}
+          onOffsetChange={setOffset}
+        />
+      )}
     </div>
   );
 }
