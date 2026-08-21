@@ -89,7 +89,7 @@ export default function OpenShiftDialog({
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={openShift.isPending}>
-            {openShift.isPending ? 'Opening…' : 'Open shift'}
+            {openShift.isPending ? 'Opening…' : 'Start shift'}
           </Button>
         </DialogFooter>
       </DialogContent>
