@@ -1,17 +1,39 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiRequest from '@/lib/apiClient';
-import { Recipe, RecipeIngredient } from '../../../../shared/inventoryTypes';
+import {
+  Recipe,
+  RecipeIngredient,
+  RecipeSummary,
+} from '../../../../shared/inventoryTypes';
 
-export function useRecipes(includeInactive = false) {
+export interface RecipeListResult {
+  items: RecipeSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export function useRecipes(
+  opts: {
+    includeInactive?: boolean;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  } = {},
+) {
   return useQuery({
-    queryKey: ['recipes', { includeInactive }],
+    queryKey: ['recipes', opts],
     queryFn: () =>
-      apiRequest<{ recipes: Recipe[] }>({
+      apiRequest<RecipeListResult>({
         method: 'GET',
         path: '/inventory/recipes',
-        query: { includeInactive: includeInactive ? 'true' : undefined },
+        query: {
+          includeInactive: opts.includeInactive ? 'true' : undefined,
+          search: opts.search || undefined,
+          limit: opts.limit ?? 25,
+          offset: opts.offset ?? 0,
+        },
       }),
-    select: (data) => data.recipes,
   });
 }
 

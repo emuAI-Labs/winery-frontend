@@ -39,7 +39,7 @@ export default function MenuItemFormDialog({
 }: MenuItemFormDialogProps) {
   const isEdit = !!menuItem;
   const { items } = useAllItems();
-  const { data: recipes } = useRecipes();
+  const { data: recipes } = useRecipes({ limit: 100 });
   const createMenuItem = useCreateMenuItem();
   const updateMenuItem = useUpdateMenuItem();
 
@@ -156,7 +156,7 @@ export default function MenuItemFormDialog({
                     <SelectValue placeholder="Choose a recipe" />
                   </SelectTrigger>
                   <SelectContent>
-                    {recipes?.map((r) => (
+                    {recipes?.items.map((r) => (
                       <SelectItem key={r.id} value={r.id}>
                         {r.name}
                       </SelectItem>

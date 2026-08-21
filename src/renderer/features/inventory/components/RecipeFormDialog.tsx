@@ -21,18 +21,24 @@ import {
 } from '@/components/ui/select';
 import { ApiError } from '@/lib/apiClient';
 import {
-  Recipe,
   RecipeIngredient,
   RecipeIngredientUnit,
 } from '../../../../shared/inventoryTypes';
-import { useCreateRecipe, useUpdateRecipe } from '../hooks/useRecipes';
+import {
+  useCreateRecipe,
+  useRecipe,
+  useUpdateRecipe,
+} from '../hooks/useRecipes';
 import { useAllItems } from '../hooks/useAllItems';
 import ItemPicker from './ItemPicker';
 
 interface RecipeFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  recipe?: Recipe;
+  /** the list screen only has RecipeSummary rows (no ingredients) — this
+   * always fetches the full detail itself rather than trusting a passed-in
+   * object, the same way OrderDetailPage always re-fetches. */
+  recipeId?: string;
 }
 
 type DraftIngredient = {
@@ -44,10 +50,13 @@ type DraftIngredient = {
 export default function RecipeFormDialog({
   open,
   onOpenChange,
-  recipe,
+  recipeId,
 }: RecipeFormDialogProps) {
-  const isEdit = !!recipe;
+  const isEdit = !!recipeId;
   const { items } = useAllItems();
+  const { data: recipe, isLoading: recipeLoading } = useRecipe(
+    open ? recipeId : undefined,
+  );
   const createRecipe = useCreateRecipe();
   const updateRecipe = useUpdateRecipe();
 
@@ -58,6 +67,7 @@ export default function RecipeFormDialog({
 
   useEffect(() => {
     if (!open) return;
+    if (isEdit && !recipe) return; // wait for detail to load before populating
     setName(recipe?.name ?? '');
     setDescription(recipe?.description ?? '');
     setIngredients(
@@ -68,7 +78,7 @@ export default function RecipeFormDialog({
       })) ?? [{ itemId: null, quantityUnit: 'ml', quantity: '' }],
     );
     setError(null);
-  }, [open, recipe]);
+  }, [open, isEdit, recipe]);
 
   const addIngredient = () =>
     setIngredients((prev) => [
@@ -121,7 +131,7 @@ export default function RecipeFormDialog({
     try {
       if (isEdit) {
         await updateRecipe.mutateAsync({
-          id: recipe.id,
+          id: recipeId as string,
           name,
           description: description || undefined,
           ingredients: payload,
@@ -141,7 +151,9 @@ export default function RecipeFormDialog({
     }
   };
 
-  const busy = createRecipe.isPending || updateRecipe.isPending;
+  const waitingForDetail = isEdit && recipeLoading;
+  const busy =
+    createRecipe.isPending || updateRecipe.isPending || waitingForDetail;
   const chosenIds = ingredients
     .map((i) => i.itemId)
     .filter((v): v is string => !!v);
@@ -260,7 +272,13 @@ export default function RecipeFormDialog({
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={busy}>
-            {busy ? 'Saving…' : isEdit ? 'Save changes' : 'Create recipe'}
+            {waitingForDetail
+              ? 'Loading…'
+              : busy
+                ? 'Saving…'
+                : isEdit
+                  ? 'Save changes'
+                  : 'Create recipe'}
           </Button>
         </DialogFooter>
       </DialogContent>

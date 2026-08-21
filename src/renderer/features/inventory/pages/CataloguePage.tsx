@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useBranches } from '@/context/BranchContext';
+import PaginationControls from '@/components/ui/pagination-controls';
 import { formatMoney, formatQty } from '@/lib/format';
 import { useItems } from '../hooks/useItems';
 import { useRecipes } from '../hooks/useRecipes';
@@ -28,11 +29,7 @@ import QueryState from '../components/QueryState';
 import ItemFormDialog from '../components/ItemFormDialog';
 import BranchStockDialog from '../components/BranchStockDialog';
 import RecipeFormDialog from '../components/RecipeFormDialog';
-import {
-  InventoryItem,
-  ItemCategory,
-  Recipe,
-} from '../../../../shared/inventoryTypes';
+import { InventoryItem, ItemCategory } from '../../../../shared/inventoryTypes';
 
 const CATEGORIES: (ItemCategory | 'all')[] = [
   'all',
@@ -204,14 +201,30 @@ function ItemsTab() {
 }
 
 function RecipesTab() {
-  const { data: recipes, isLoading, error } = useRecipes();
-  const [dialog, setDialog] = useState<{ open: boolean; recipe?: Recipe }>({
+  const [offset, setOffset] = useState(0);
+  const [search, setSearch] = useState('');
+  const limit = 25;
+  const {
+    data: recipes,
+    isLoading,
+    error,
+  } = useRecipes({ search: search || undefined, limit, offset });
+  const [dialog, setDialog] = useState<{ open: boolean; recipeId?: string }>({
     open: false,
   });
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-3">
+        <Input
+          placeholder="Search recipes…"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setOffset(0);
+          }}
+          className="max-w-xs"
+        />
         <Button onClick={() => setDialog({ open: true })}>
           <Plus className="mr-1 h-4 w-4" /> New recipe
         </Button>
@@ -219,14 +232,14 @@ function RecipesTab() {
       <QueryState
         isLoading={isLoading}
         error={error}
-        isEmpty={(recipes?.length ?? 0) === 0}
+        isEmpty={(recipes?.items.length ?? 0) === 0}
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {recipes?.map((recipe) => (
+          {recipes?.items.map((recipe) => (
             <button
               key={recipe.id}
               type="button"
-              onClick={() => setDialog({ open: true, recipe })}
+              onClick={() => setDialog({ open: true, recipeId: recipe.id })}
               className="rounded-lg border p-4 text-left transition-colors hover:border-primary"
             >
               <div className="flex items-center justify-between">
@@ -240,22 +253,22 @@ function RecipesTab() {
                   {recipe.description}
                 </p>
               )}
-              <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-                {recipe.ingredients.map((ing) => (
-                  <li key={ing.itemId}>
-                    {ing.item?.name ?? ing.itemId} — {ing.quantity}
-                    {ing.quantityUnit === 'ml' ? 'ml' : ` ${ing.quantityUnit}`}
-                  </li>
-                ))}
-              </ul>
             </button>
           ))}
         </div>
       </QueryState>
+      {recipes && (
+        <PaginationControls
+          offset={offset}
+          limit={recipes.limit}
+          total={recipes.total}
+          onOffsetChange={setOffset}
+        />
+      )}
       <RecipeFormDialog
         open={dialog.open}
         onOpenChange={(openVal) => setDialog({ open: openVal })}
-        recipe={dialog.recipe}
+        recipeId={dialog.recipeId}
       />
     </div>
   );
