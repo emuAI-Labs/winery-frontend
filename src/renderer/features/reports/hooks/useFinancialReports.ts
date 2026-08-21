@@ -24,18 +24,28 @@ export function useProfitabilityReport(range: DateRange) {
   });
 }
 
-export function useShiftVarianceReport(range: DateRange) {
+export function useShiftVarianceReport(
+  range: DateRange & { limit?: number; offset?: number },
+) {
   return useQuery({
     queryKey: ['reports', 'shift-variance', range],
     queryFn: () =>
+      // totalVarianceCents/shiftCount summarize every matching shift, not
+      // just the current page — never derive them from shifts.length.
       apiRequest<{
         shifts: ShiftVarianceRow[];
         totalVarianceCents: number;
         shiftCount: number;
+        limit: number;
+        offset: number;
       }>({
         method: 'GET',
         path: '/reports/shift-variance',
-        query: { ...range },
+        query: {
+          ...range,
+          limit: range.limit ?? 50,
+          offset: range.offset ?? 0,
+        },
       }),
   });
 }

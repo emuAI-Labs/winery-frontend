@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import QueryState from '@/features/inventory/components/QueryState';
+import PaginationControls from '@/components/ui/pagination-controls';
 import { formatDateTime } from '@/lib/format';
 import {
   useReportDefinitions,
@@ -15,7 +16,12 @@ import CreateDefinitionDialog from './CreateDefinitionDialog';
 import ScheduleDialog from './ScheduleDialog';
 
 export default function ReportBuilderTab() {
-  const { data: definitions, isLoading, error } = useReportDefinitions();
+  const [offset, setOffset] = useState(0);
+  const {
+    data: definitions,
+    isLoading,
+    error,
+  } = useReportDefinitions({ offset });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -27,7 +33,7 @@ export default function ReportBuilderTab() {
   } = useRunReportDefinition(selectedId ?? undefined);
   const { data: schedules } = useReportSchedules(selectedId ?? undefined);
 
-  const selected = definitions?.find((d) => d.id === selectedId);
+  const selected = definitions?.items.find((d) => d.id === selectedId);
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -41,11 +47,11 @@ export default function ReportBuilderTab() {
         <QueryState
           isLoading={isLoading}
           error={error}
-          isEmpty={(definitions?.length ?? 0) === 0}
+          isEmpty={(definitions?.items.length ?? 0) === 0}
           emptyMessage="No saved reports yet."
         >
           <div className="space-y-2">
-            {definitions?.map((def) => (
+            {definitions?.items.map((def) => (
               <button
                 key={def.id}
                 type="button"
@@ -62,6 +68,14 @@ export default function ReportBuilderTab() {
             ))}
           </div>
         </QueryState>
+        {definitions && (
+          <PaginationControls
+            offset={offset}
+            limit={definitions.limit}
+            total={definitions.total}
+            onOffsetChange={setOffset}
+          />
+        )}
       </div>
 
       <div className="space-y-4 lg:col-span-2">

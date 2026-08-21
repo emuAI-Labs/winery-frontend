@@ -7,16 +7,28 @@ import {
   ReportType,
 } from '../../../../shared/salesTypes';
 
-export function useReportDefinitions(reportType?: ReportType) {
+export interface ReportDefinitionListResult {
+  items: ReportDefinition[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export function useReportDefinitions(
+  opts: { reportType?: ReportType; limit?: number; offset?: number } = {},
+) {
   return useQuery({
-    queryKey: ['report-definitions', reportType],
+    queryKey: ['report-definitions', opts],
     queryFn: () =>
-      apiRequest<{ definitions: ReportDefinition[] } | ReportDefinition[]>({
+      apiRequest<ReportDefinitionListResult>({
         method: 'GET',
         path: '/reports/definitions',
-        query: { reportType },
+        query: {
+          reportType: opts.reportType,
+          limit: opts.limit ?? 25,
+          offset: opts.offset ?? 0,
+        },
       }),
-    select: (data) => (Array.isArray(data) ? data : data.definitions),
   });
 }
 

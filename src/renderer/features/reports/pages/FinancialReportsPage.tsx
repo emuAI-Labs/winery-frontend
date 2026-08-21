@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import BranchSelect from '@/components/inventory/BranchSelect';
+import PaginationControls from '@/components/ui/pagination-controls';
 import { useBranches } from '@/context/BranchContext';
 import QueryState from '@/features/inventory/components/QueryState';
 import { formatCents } from '@/lib/format';
@@ -90,8 +91,10 @@ function ProfitabilityTab() {
 
 function ShiftVarianceTab() {
   const { selectedBranchId } = useBranches();
+  const [offset, setOffset] = useState(0);
   const { data, isLoading, error } = useShiftVarianceReport({
     branchId: selectedBranchId ?? undefined,
+    offset,
   });
 
   return (
@@ -145,6 +148,14 @@ function ShiftVarianceTab() {
           </TableBody>
         </Table>
       </QueryState>
+      {data && (
+        <PaginationControls
+          offset={offset}
+          limit={data.limit}
+          total={data.shiftCount}
+          onOffsetChange={setOffset}
+        />
+      )}
     </div>
   );
 }
