@@ -55,11 +55,17 @@ export interface RecipeIngredient {
   item?: InventoryItem;
 }
 
-export interface Recipe {
+/** The shape returned by GET /inventory/recipes (list) — no ingredients.
+ * Only GET /inventory/recipes/:id (detail) includes them; always fetch that
+ * before editing a recipe rather than trusting a list-row object. */
+export interface RecipeSummary {
   id: string;
   name: string;
   description: string | null;
   isActive: boolean;
+}
+
+export interface Recipe extends RecipeSummary {
   ingredients: RecipeIngredient[];
 }
 
@@ -163,21 +169,20 @@ export interface ConsolidatedStockItem {
 }
 
 export interface ExpiryWarning {
+  batchId: string;
   itemId: string;
   itemName: string;
   branchId: string;
   branchName: string;
   batchCode: string | null;
   expiryDate: string;
-  quantity: string;
+  quantityRemaining: string;
 }
 
 export interface DeadStockItem {
   itemId: string;
-  name: string;
-  sku: string;
+  itemName: string;
   quantityOnHand: string;
-  sinceDays: number;
 }
 
 export interface ForecastResult {

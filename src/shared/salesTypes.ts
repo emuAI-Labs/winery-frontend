@@ -153,7 +153,7 @@ export interface Expense {
   supplierName?: string | null;
   status: ExpenseStatus;
   paidDate?: string | null;
-  frequency?: 'recurring' | null;
+  frequency?: 'one_off' | 'recurring' | null;
   recurrenceIntervalDays?: number | null;
 }
 
