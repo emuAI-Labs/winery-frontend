@@ -53,7 +53,7 @@ export interface Bill {
   totalCents: number;
 }
 
-export interface Order {
+export interface OrderSummary {
   id: string;
   branchId: string;
   status: OrderStatus;
@@ -61,9 +61,16 @@ export interface Order {
   tableLabel?: string | null;
   seatLabel?: string | null;
   guestCount?: number | null;
+  createdAt: string;
+}
+
+/** The shape returned by GET /orders/:id (and only that endpoint) — every
+ * other endpoint that touches an order (list, create, hold/resume/close/
+ * transfer) returns OrderSummary, without lines/bills. Always re-fetch the
+ * detail endpoint rather than assuming a mutation response carries them. */
+export interface Order extends OrderSummary {
   lines: OrderLine[];
   bills: Bill[];
-  createdAt: string;
 }
 
 export type DiscountType = 'percent' | 'fixed' | 'comp';
@@ -90,7 +97,8 @@ export interface Payment {
   amountCents: number;
   mpesaCode?: string | null;
   mpesaStatus?: MpesaStatus | null;
-  isVoided: boolean;
+  /** the API has no isVoided boolean — voided state is voidedAt being set */
+  voidedAt?: string | null;
   createdAt: string;
   /** true when this payment was recorded offline and hasn't reached the
    * server yet */

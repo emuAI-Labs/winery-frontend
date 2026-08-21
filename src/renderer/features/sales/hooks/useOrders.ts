@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiRequest from '@/lib/apiClient';
-import { Order, OrderStatus, OrderType } from '../../../../shared/salesTypes';
+import {
+  Order,
+  OrderStatus,
+  OrderSummary,
+  OrderType,
+} from '../../../../shared/salesTypes';
 
 export function useOrders(filters: {
   branchId?: string;
@@ -10,7 +15,7 @@ export function useOrders(filters: {
   return useQuery({
     queryKey: ['orders', filters],
     queryFn: () =>
-      apiRequest<{ orders: Order[] }>({
+      apiRequest<{ orders: OrderSummary[] }>({
         method: 'GET',
         path: '/orders',
         query: {
@@ -52,7 +57,7 @@ export function useOpenOrder() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: OpenOrderInput) =>
-      apiRequest<{ order: Order }>({
+      apiRequest<{ order: OrderSummary }>({
         method: 'POST',
         path: '/orders',
         body: input,
@@ -66,7 +71,7 @@ function useOrderAction(action: 'hold' | 'resume' | 'close') {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) =>
-      apiRequest<{ order: Order }>({
+      apiRequest<{ order: OrderSummary }>({
         method: 'PATCH',
         path: `/orders/${id}/${action}`,
       }),
@@ -89,7 +94,7 @@ export function useTransferOrder() {
       tableLabel?: string;
       seatLabel?: string;
     }) =>
-      apiRequest<{ order: Order }>({
+      apiRequest<{ order: OrderSummary }>({
         method: 'PATCH',
         path: `/orders/${id}/transfer`,
         body,
