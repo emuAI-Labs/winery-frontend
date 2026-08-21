@@ -34,11 +34,14 @@ export function useExpensesDue(withinDays: number) {
   return useQuery({
     queryKey: ['expenses-due', withinDays],
     queryFn: () =>
-      apiRequest<{ expenses: Expense[] }>({
+      // API wraps this as { items: [...] }, not { expenses: [...] } —
+      // normalized to `expenses` so the consumer shape stays stable.
+      apiRequest<{ items: Expense[]; total: number }>({
         method: 'GET',
         path: '/expenses/due',
         query: { withinDays },
       }),
+    select: (data) => ({ expenses: data.items, total: data.total }),
   });
 }
 
