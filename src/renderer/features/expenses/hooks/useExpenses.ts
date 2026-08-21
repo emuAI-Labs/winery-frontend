@@ -14,7 +14,9 @@ export function useExpenses(filters: {
   return useQuery({
     queryKey: ['expenses', filters],
     queryFn: () =>
-      apiRequest<{ expenses: Expense[]; total: number }>({
+      // API wraps this list as { items: [...] }, not { expenses: [...] } —
+      // normalized to `expenses` here so the consumer shape stays stable.
+      apiRequest<{ items: Expense[]; total: number }>({
         method: 'GET',
         path: '/expenses',
         query: {
@@ -24,6 +26,7 @@ export function useExpenses(filters: {
           limit: 100,
         },
       }),
+    select: (data) => ({ expenses: data.items, total: data.total }),
   });
 }
 
