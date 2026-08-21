@@ -10,6 +10,7 @@ import { ApiError } from '@/lib/apiClient';
 import { VOID_LINE_REASONS } from '@/lib/salesReasonCodes';
 import { Order, OrderLineStatus } from '../../../../shared/salesTypes';
 import { useSendLine, useServeLine, useVoidLine } from '../hooks/useOrderLines';
+import { useMenuItemLookup } from '../hooks/useMenuItemLookup';
 import ReasonCodeDialog from './ReasonCodeDialog';
 
 const STATUS_VARIANT: Record<
@@ -31,6 +32,7 @@ export default function OrderLinesList({ order }: OrderLinesListProps) {
   const sendLine = useSendLine(order.id);
   const serveLine = useServeLine(order.id);
   const voidLine = useVoidLine(order.id);
+  const menuItemNames = useMenuItemLookup();
   const [voidTarget, setVoidTarget] = useState<string | null>(null);
 
   const canVoid = hasPermission(user?.role, 'sales:void');
@@ -78,7 +80,8 @@ export default function OrderLinesList({ order }: OrderLinesListProps) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="font-medium">
-                {line.quantity}× {line.menuItem?.name ?? line.menuItemId}
+                {line.quantity}×{' '}
+                {menuItemNames.get(line.menuItemId) ?? line.menuItemId}
               </span>
               <Badge
                 variant={STATUS_VARIANT[line.status]}

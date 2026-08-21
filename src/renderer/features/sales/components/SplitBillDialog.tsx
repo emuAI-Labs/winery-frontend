@@ -22,6 +22,7 @@ import { ApiError } from '@/lib/apiClient';
 import { formatCents } from '@/lib/format';
 import { Order } from '../../../../shared/salesTypes';
 import { useSplitBill } from '../hooks/useBills';
+import { useMenuItemLookup } from '../hooks/useMenuItemLookup';
 
 interface SplitBillDialogProps {
   open: boolean;
@@ -37,6 +38,7 @@ export default function SplitBillDialog({
   order,
 }: SplitBillDialogProps) {
   const splitBill = useSplitBill(order.id);
+  const menuItemNames = useMenuItemLookup();
   const [mode, setMode] = useState<Mode>('by_item');
   const [guestCount, setGuestCount] = useState('2');
   const [error, setError] = useState<string | null>(null);
@@ -115,7 +117,8 @@ export default function SplitBillDialog({
                     className="flex items-center justify-between gap-2 rounded-md border p-2 text-sm"
                   >
                     <span>
-                      {line.quantity}× {line.menuItem?.name ?? line.menuItemId}{' '}
+                      {line.quantity}×{' '}
+                      {menuItemNames.get(line.menuItemId) ?? line.menuItemId}{' '}
                       <span className="text-muted-foreground">
                         ({formatCents(line.lineTotalCents)})
                       </span>
