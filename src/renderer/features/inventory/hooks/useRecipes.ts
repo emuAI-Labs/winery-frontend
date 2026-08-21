@@ -6,11 +6,12 @@ export function useRecipes(includeInactive = false) {
   return useQuery({
     queryKey: ['recipes', { includeInactive }],
     queryFn: () =>
-      apiRequest<Recipe[]>({
+      apiRequest<{ recipes: Recipe[] }>({
         method: 'GET',
         path: '/inventory/recipes',
         query: { includeInactive: includeInactive ? 'true' : undefined },
       }),
+    select: (data) => data.recipes,
   });
 }
 

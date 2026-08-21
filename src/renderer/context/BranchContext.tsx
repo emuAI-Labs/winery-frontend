@@ -26,8 +26,12 @@ export function BranchProvider({ children }: PropsWithChildren) {
   const { data: branches = [], isLoading } = useQuery({
     queryKey: ['branches'],
     queryFn: () =>
-      apiRequest<Branch[]>({ method: 'GET', path: '/inventory/branches' }),
+      apiRequest<{ branches: Branch[] }>({
+        method: 'GET',
+        path: '/inventory/branches',
+      }),
     staleTime: 5 * 60_000,
+    select: (data) => data.branches,
   });
 
   const [selectedBranchId, setSelectedBranchIdState] = useState<string | null>(

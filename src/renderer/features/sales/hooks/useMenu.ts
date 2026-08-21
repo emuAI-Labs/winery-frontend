@@ -19,7 +19,7 @@ export function useMenuItems(
           isActive:
             opts.isActive === undefined ? undefined : String(opts.isActive),
           search: opts.search || undefined,
-          limit: 200,
+          limit: 100,
         },
       }),
   });
@@ -66,10 +66,12 @@ export function usePricingRules(menuItemId: string | undefined) {
   return useQuery({
     queryKey: ['pricing-rules', menuItemId],
     queryFn: () =>
-      apiRequest<PricingRule[]>({
+      // API wraps this list as { rules: [...] }, not a bare array.
+      apiRequest<{ rules: PricingRule[] }>({
         method: 'GET',
         path: `/menu/items/${menuItemId}/pricing-rules`,
       }),
+    select: (data) => data.rules,
     enabled: !!menuItemId,
   });
 }

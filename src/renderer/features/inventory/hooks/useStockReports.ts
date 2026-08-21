@@ -35,11 +35,14 @@ export function useExpiryWarnings(
   return useQuery({
     queryKey: ['expiry-warnings', branchId, withinDays],
     queryFn: () =>
-      apiRequest<{ warnings: ExpiryWarning[] }>({
+      // API wraps the list as { batches: [...] }, not { warnings: [...] } —
+      // normalized to `warnings` here so every consumer keeps the same shape.
+      apiRequest<{ batches: ExpiryWarning[] }>({
         method: 'GET',
         path: '/inventory/expiry-warnings',
         query: { branchId, withinDays },
       }),
+    select: (data) => ({ warnings: data.batches }),
   });
 }
 
