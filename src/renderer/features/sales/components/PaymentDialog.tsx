@@ -40,7 +40,7 @@ export default function PaymentDialog({
 
   const covered =
     paymentsData?.payments
-      .filter((p) => !p.isVoided)
+      .filter((p) => !p.voidedAt)
       .reduce((sum, p) => sum + p.amountCents, 0) ?? 0;
   const remaining = Math.max((bill?.totalCents ?? 0) - covered, 0);
 

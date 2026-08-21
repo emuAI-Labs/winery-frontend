@@ -227,7 +227,7 @@ export function echoRecordPayment(
     amountCents: body.amountCents,
     mpesaCode: body.mpesaCode ?? null,
     mpesaStatus: body.method === 'mpesa' ? 'pending_confirmation' : null,
-    isVoided: false,
+    voidedAt: null,
     createdAt: new Date().toISOString(),
     unsynced: true,
   };
@@ -240,7 +240,7 @@ export function echoRecordPayment(
     const bill = order.bills.find((b): b is Bill => b.id === billId);
     if (bill) {
       const covered = payments
-        .filter((p) => !p.isVoided)
+        .filter((p) => !p.voidedAt)
         .reduce((sum, p) => sum + p.amountCents, 0);
       if (covered >= bill.totalCents) bill.status = 'paid';
       putCachedOrder(order);

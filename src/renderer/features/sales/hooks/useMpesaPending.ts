@@ -49,7 +49,7 @@ async function fetchPendingMpesa(branchId: string): Promise<PendingMpesaRow[]> {
           (p) =>
             p.method === 'mpesa' &&
             p.mpesaStatus === 'pending_confirmation' &&
-            !p.isVoided,
+            !p.voidedAt,
         )
         .map((payment) => ({ payment, orderId, billId, tableLabel }));
     }),
