@@ -47,19 +47,25 @@ export default function MpesaReconciliationPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">M-PESA reconciliation</h1>
+          <Link
+            to="/till"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            ← Back to till
+          </Link>
+          <h1 className="mt-1 text-2xl font-semibold">M-PESA payments</h1>
           <p className="text-sm text-muted-foreground">
-            Codes taken at face value during checkout — confirm each against
-            your M-PESA statement.
+            Staff take the customer&apos;s word for the code at checkout — check
+            each one against your M-PESA statement here.
           </p>
         </div>
         <BranchSelect />
       </div>
 
       <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
-        Only pending codes on currently open or held tabs are listed — there is
-        no endpoint yet to list payments on a tab that has already been closed.
-        If you need to reconcile one of those, look it up by order.
+        This list only shows codes from tabs that are still open or on hold. If
+        a tab has already been closed, open that order directly to review its
+        payment instead.
       </p>
 
       <QueryState

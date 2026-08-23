@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import apiRequest from '@/lib/apiClient';
-import { Order, Payment } from '../../../../shared/salesTypes';
+import { Order, OrderSummary, Payment } from '../../../../shared/salesTypes';
 
 export interface PendingMpesaRow {
   payment: Payment;
@@ -18,18 +18,30 @@ export interface PendingMpesaRow {
  * closed-tab reconciliation turns out to matter. */
 async function fetchPendingMpesa(branchId: string): Promise<PendingMpesaRow[]> {
   const [openRes, heldRes] = await Promise.all([
-    apiRequest<{ orders: Order[] }>({
+    apiRequest<{ orders: OrderSummary[] }>({
       method: 'GET',
       path: '/orders',
       query: { branchId, status: 'open', limit: 100 },
     }),
-    apiRequest<{ orders: Order[] }>({
+    apiRequest<{ orders: OrderSummary[] }>({
       method: 'GET',
       path: '/orders',
       query: { branchId, status: 'held', limit: 100 },
     }),
   ]);
-  const orders = [...openRes.orders, ...heldRes.orders];
+  const summaries = [...openRes.orders, ...heldRes.orders];
+
+  // The list endpoint only returns OrderSummary (no bills) — fetch each
+  // order's detail to get its bill ids, same pattern as everywhere else in
+  // this app that needs bills/lines.
+  const orders = await Promise.all(
+    summaries.map((o) =>
+      apiRequest<{ order: Order }>({
+        method: 'GET',
+        path: `/orders/${o.id}`,
+      }).then((res) => res.order),
+    ),
+  );
   const billIds = orders.flatMap((o) =>
     o.bills.map((b) => ({
       orderId: o.id,
