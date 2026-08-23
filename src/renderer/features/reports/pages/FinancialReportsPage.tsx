@@ -28,6 +28,7 @@ import {
   useSalesSummary,
   useTopSellers,
 } from '../hooks/useBiReports';
+import { useReconciliation } from '../hooks/useReconciliation';
 import DateRangeFilter, { DateRangeValue } from '../components/DateRangeFilter';
 import ReportBuilderTab from '../components/ReportBuilderTab';
 
@@ -464,6 +465,179 @@ function CrossBranchDashboardTab() {
   );
 }
 
+function ReconciliationTab() {
+  const { selectedBranchId } = useBranches();
+  const [range, setRange] = useState<DateRangeValue>({});
+  const [offset, setOffset] = useState(0);
+  const { data, isLoading, error } = useReconciliation({
+    branchId: selectedBranchId ?? undefined,
+    offset,
+    ...range,
+  });
+
+  return (
+    <div className="space-y-6">
+      <DateRangeFilter value={range} onChange={setRange} />
+      <QueryState isLoading={isLoading} error={error}>
+        {data && (
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">
+                Menu items not properly linked to stock
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                These sales went through, but the matching item wasn&apos;t
+                deducted from stock — usually because the recipe isn&apos;t set
+                up correctly for this branch, not a sign of loss or fraud.
+              </p>
+              {data.depletionGaps.lineCount > 0 && (
+                <p className="text-sm">
+                  {data.depletionGaps.lineCount} sale
+                  {data.depletionGaps.lineCount === 1 ? '' : 's'} affected ·{' '}
+                  {formatCents(data.depletionGaps.estimatedValueCents)} in
+                  revenue
+                </p>
+              )}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Menu item</TableHead>
+                    <TableHead>Times it happened</TableHead>
+                    <TableHead>Revenue affected</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.depletionGaps.items.length === 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={3}
+                        className="text-center text-sm text-muted-foreground"
+                      >
+                        Nothing to fix here.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {data.depletionGaps.items.map((row) => (
+                    <TableRow key={row.menuItemId}>
+                      <TableCell>{row.name}</TableCell>
+                      <TableCell>{row.incompleteLineCount}</TableCell>
+                      <TableCell>
+                        {formatCents(row.estimatedValueCents)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Items worth investigating</h4>
+              <p className="text-xs text-muted-foreground">
+                Stock came up short at more than one count for these items — the
+                strongest sign of unrecorded pours or breakage. Worth a closer
+                look.
+              </p>
+              {data.stockShortfalls.totalShortfallValueCents > 0 && (
+                <p className="text-sm">
+                  {formatCents(data.stockShortfalls.totalShortfallValueCents)}{' '}
+                  in shortfalls
+                </p>
+              )}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Item</TableHead>
+                    <TableHead>Times it came up short</TableHead>
+                    <TableHead>Value lost</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.stockShortfalls.items.length === 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={3}
+                        className="text-center text-sm text-muted-foreground"
+                      >
+                        Nothing to investigate right now.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {data.stockShortfalls.items.map((row) => (
+                    <TableRow key={row.itemId}>
+                      <TableCell>{row.name}</TableCell>
+                      <TableCell>{row.shortfallCount}</TableCell>
+                      <TableCell>
+                        {formatCents(row.totalShortfallValueCents)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Prices that may be stale</h4>
+              <p className="text-xs text-muted-foreground">
+                What these items actually made doesn&apos;t match what the menu
+                says they should — the listed cost is probably out of date, not
+                a sign of leakage.
+              </p>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Menu item</TableHead>
+                    <TableHead>Qty sold</TableHead>
+                    <TableHead>Listed margin</TableHead>
+                    <TableHead>Actual margin</TableHead>
+                    <TableHead>Gap</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.marginGaps.items.length === 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="text-center text-sm text-muted-foreground"
+                      >
+                        Nothing out of line right now.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {data.marginGaps.items.map((row) => (
+                    <TableRow key={row.menuItemId}>
+                      <TableCell>{row.name}</TableCell>
+                      <TableCell>{row.quantitySold}</TableCell>
+                      <TableCell>
+                        {formatCents(row.catalogueMarginCents)}
+                      </TableCell>
+                      <TableCell>
+                        {formatCents(row.realizedMarginCents)}
+                      </TableCell>
+                      <TableCell>{formatCents(row.gapCents)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </QueryState>
+      {data && (
+        <PaginationControls
+          offset={offset}
+          limit={data.marginGaps.limit}
+          total={Math.max(
+            data.depletionGaps.total,
+            data.stockShortfalls.total,
+            data.marginGaps.total,
+          )}
+          onOffsetChange={setOffset}
+        />
+      )}
+    </div>
+  );
+}
+
 export default function FinancialReportsPage() {
   return (
     <div className="space-y-4">
@@ -486,6 +660,7 @@ export default function FinancialReportsPage() {
           <TabsTrigger value="shift-variance">Shift variance</TabsTrigger>
           <TabsTrigger value="expenses">Expense summary</TabsTrigger>
           <TabsTrigger value="dashboard">Cross-branch</TabsTrigger>
+          <TabsTrigger value="reconciliation">Does it tally up?</TabsTrigger>
           <TabsTrigger value="builder">Report builder</TabsTrigger>
         </TabsList>
         <TabsContent value="sales-summary">
@@ -511,6 +686,9 @@ export default function FinancialReportsPage() {
         </TabsContent>
         <TabsContent value="dashboard">
           <CrossBranchDashboardTab />
+        </TabsContent>
+        <TabsContent value="reconciliation">
+          <ReconciliationTab />
         </TabsContent>
         <TabsContent value="builder">
           <ReportBuilderTab />

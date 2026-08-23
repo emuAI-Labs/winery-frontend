@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { TriangleAlert } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -11,7 +11,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Select,
   SelectContent,
@@ -58,7 +57,9 @@ export default function ScheduleDialog({
     }
     try {
       await createSchedule.mutateAsync({ frequency, recipientEmails });
-      toast.success('Schedule saved');
+      toast.success(
+        `They'll get this report by email ${frequency === 'daily' ? 'every day' : frequency === 'weekly' ? 'every week' : 'every month'}`,
+      );
       onOpenChange(false);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong.');
@@ -69,18 +70,13 @@ export default function ScheduleDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Schedule delivery</DialogTitle>
+          <DialogTitle>Email this report automatically</DialogTitle>
+          <DialogDescription>
+            We&apos;ll email this report to the people below on the schedule you
+            pick.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <Alert variant="warning">
-            <TriangleAlert className="h-4 w-4" />
-            <AlertDescription>
-              This saves the schedule, but nothing is actually sent yet — there
-              is no email delivery behind this on the server. Do not tell staff
-              they&apos;ll receive an email; treat this as configuration only,
-              coming soon.
-            </AlertDescription>
-          </Alert>
           <div className="space-y-2">
             <Label>Frequency</Label>
             <Select

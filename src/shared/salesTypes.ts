@@ -225,7 +225,8 @@ export type ReportType =
   | 'shift_variance'
   | 'expense_summary'
   | 'customer_trends'
-  | 'dashboard';
+  | 'dashboard'
+  | 'reconciliation';
 
 export interface ReportDefinition {
   id: string;
@@ -238,6 +239,8 @@ export interface ReportDefinition {
 
 export type ReportScheduleFrequency = 'daily' | 'weekly' | 'monthly';
 
+export type ReportScheduleRunStatus = 'sent' | 'skipped' | 'failed' | null;
+
 export interface ReportSchedule {
   id: string;
   reportDefinitionId: string;
@@ -245,4 +248,48 @@ export interface ReportSchedule {
   recipientEmails: string[];
   nextRunAt: string;
   isActive: boolean;
+  lastRunAt: string | null;
+  lastRunStatus: ReportScheduleRunStatus;
+  lastRunError: string | null;
+}
+
+export interface DepletionGapRow {
+  menuItemId: string;
+  name: string;
+  incompleteLineCount: number;
+  estimatedValueCents: number;
+}
+
+export interface StockShortfallRow {
+  itemId: string;
+  name: string;
+  shortfallCount: number;
+  totalShortfallValueCents: number;
+}
+
+export interface MarginGapRow {
+  menuItemId: string;
+  name: string;
+  quantitySold: number;
+  catalogueMarginCents: number;
+  realizedMarginCents: number;
+  gapCents: number;
+}
+
+export interface ReconciliationSection<T> {
+  items: T[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface ReconciliationReport {
+  depletionGaps: ReconciliationSection<DepletionGapRow> & {
+    lineCount: number;
+    estimatedValueCents: number;
+  };
+  stockShortfalls: ReconciliationSection<StockShortfallRow> & {
+    totalShortfallValueCents: number;
+  };
+  marginGaps: ReconciliationSection<MarginGapRow>;
 }

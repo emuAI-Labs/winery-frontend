@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Plus, Play, Clock, TriangleAlert } from 'lucide-react';
+import { Plus, Play, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import QueryState from '@/features/inventory/components/QueryState';
 import PaginationControls from '@/components/ui/pagination-controls';
 import { formatDateTime } from '@/lib/format';
@@ -108,7 +107,8 @@ export default function ReportBuilderTab() {
                   variant="outline"
                   onClick={() => setScheduleOpen(true)}
                 >
-                  <Clock className="mr-1 h-3.5 w-3.5" /> Schedule
+                  <Clock className="mr-1 h-3.5 w-3.5" /> Email this on a
+                  schedule
                 </Button>
               </div>
             </div>
@@ -126,27 +126,32 @@ export default function ReportBuilderTab() {
             {schedules && schedules.length > 0 && (
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground">
-                  Delivery schedules
+                  Email schedules
                 </h4>
-                <Alert variant="warning">
-                  <TriangleAlert className="h-4 w-4" />
-                  <AlertDescription>
-                    Saved, but nothing is actually sent yet — no email delivery
-                    runs on these schedules on the server today.
-                  </AlertDescription>
-                </Alert>
                 {schedules.map((s) => (
                   <div
                     key={s.id}
-                    className="flex items-center justify-between rounded-md border p-2 text-sm"
+                    className="space-y-1 rounded-md border p-2 text-sm"
                   >
-                    <span className="capitalize">{s.frequency}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {s.recipientEmails.join(', ')}
-                    </span>
-                    <Badge variant={s.isActive ? 'success' : 'secondary'}>
-                      {s.isActive ? 'Active' : 'Inactive'}
-                    </Badge>
+                    <div className="flex items-center justify-between">
+                      <span className="capitalize">{s.frequency}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {s.recipientEmails.join(', ')}
+                      </span>
+                      <Badge variant={s.isActive ? 'success' : 'secondary'}>
+                        {s.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {s.lastRunStatus === 'sent' &&
+                        `Last sent ${formatDateTime(s.lastRunAt as string)}`}
+                      {s.lastRunStatus === 'skipped' &&
+                        'Not sent last time — ask your admin to check the email setup.'}
+                      {s.lastRunStatus === 'failed' &&
+                        `Failed to send${s.lastRunError ? `: ${s.lastRunError}` : ''}`}
+                      {!s.lastRunStatus &&
+                        `Hasn't run yet — next one goes out ${formatDateTime(s.nextRunAt)}`}
+                    </p>
                   </div>
                 ))}
               </div>

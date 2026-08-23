@@ -32,6 +32,7 @@ const REPORT_TYPES: { value: ReportType; label: string }[] = [
   { value: 'expense_summary', label: 'Expense summary' },
   { value: 'customer_trends', label: 'Customer trends' },
   { value: 'dashboard', label: 'Cross-branch dashboard' },
+  { value: 'reconciliation', label: 'Does it tally up?' },
 ];
 
 interface CreateDefinitionDialogProps {
