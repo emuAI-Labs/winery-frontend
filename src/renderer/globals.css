@@ -4,26 +4,33 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --background: 240 20% 99%;
+    --foreground: 240 10% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 240 10% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 346 77% 30%;
-    --primary-foreground: 355 100% 97%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --popover-foreground: 240 10% 12%;
+    --primary: 243 75% 59%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 15% 95.5%;
+    --secondary-foreground: 240 8% 20%;
+    --muted: 240 15% 95.5%;
+    --muted-foreground: 240 6% 46%;
+    --accent: 243 75% 96%;
+    --accent-foreground: 243 60% 35%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 346 77% 30%;
-    --radius: 0.5rem;
+    --border: 240 12% 90%;
+    --input: 240 12% 90%;
+    --ring: 243 75% 59%;
+    --radius: 0.75rem;
+
+    --sidebar: 240 25% 9%;
+    --sidebar-foreground: 240 10% 88%;
+    --sidebar-muted: 240 10% 60%;
+    --sidebar-border: 240 20% 16%;
+    --sidebar-accent: 240 20% 15%;
+    --sidebar-active: 243 75% 59%;
   }
 }
 
@@ -31,7 +38,33 @@
   * {
     @apply border-border;
   }
+  html {
+    font-feature-settings:
+      'cv02', 'cv03', 'cv04', 'cv11';
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family:
+      'Inter',
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.25);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
   }
 }

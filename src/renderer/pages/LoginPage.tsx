@@ -31,10 +31,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Winery POS</CardTitle>
+    <div className="flex min-h-screen items-center justify-center bg-sidebar p-4">
+      <Card className="w-full max-w-sm border-sidebar-border/40 shadow-2xl shadow-black/20">
+        <CardHeader className="items-center text-center">
+          <div className="mb-1 flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground">
+            P
+          </div>
+          <CardTitle className="text-xl tracking-tight">POS</CardTitle>
           <CardDescription>Sign in to start your shift</CardDescription>
         </CardHeader>
         <CardContent>
