@@ -53,8 +53,8 @@ export default function StockCountsListPage() {
       <Card>
         <CardContent className="space-y-2 pt-6">
           <p className="text-xs text-muted-foreground">
-            Only counts opened from this app on this device are listed here —
-            there is no server-side history endpoint yet.
+            This only shows counts started from this device — counts started
+            elsewhere won&apos;t appear here.
           </p>
           {recent.length === 0 && (
             <p className="py-6 text-center text-sm text-muted-foreground">

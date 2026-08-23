@@ -202,8 +202,8 @@ export default function LossesPage() {
           Logged this session ({sessionLog.length})
         </h2>
         <p className="mb-2 text-xs text-muted-foreground">
-          A full loss history is not available from the backend yet — this list
-          only holds what you have logged since opening the app.
+          This only shows what you&apos;ve logged since you opened the app — it
+          won&apos;t include older entries.
         </p>
         {sessionLog.length > 0 && (
           <Table>

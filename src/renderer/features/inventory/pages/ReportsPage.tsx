@@ -240,8 +240,8 @@ function ForecastTab() {
                 <span>{data.suggestedOrderQuantity}</span>
               </div>
               <p className="pt-2 text-xs text-muted-foreground">
-                Based on average daily usage over the lookback window — a simple
-                heuristic, not a seasonality-aware forecast.
+                This is a simple average based on recent usage — it won&apos;t
+                catch seasonal swings like a holiday rush.
               </p>
             </div>
           )}

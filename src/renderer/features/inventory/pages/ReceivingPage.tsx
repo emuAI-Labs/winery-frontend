@@ -71,7 +71,7 @@ export default function ReceivingPage() {
       setError(
         err instanceof ApiError
           ? err.message
-          : 'Could not confirm this receipt reached the server — check stock levels before resubmitting rather than retrying blindly.',
+          : "We couldn't confirm this went through. Check the item's stock levels first — if the delivery is already showing, don't submit it again.",
       );
     }
   };
@@ -91,9 +91,9 @@ export default function ReceivingPage() {
       <Alert>
         <TriangleAlert className="h-4 w-4" />
         <AlertDescription>
-          Receiving is not safe to auto-retry. If this fails partway (e.g.
-          network drop), check the item&apos;s stock before submitting again —
-          do not resubmit blindly.
+          If a delivery fails to save partway through — say the connection drops
+          — check the item&apos;s stock before submitting it again, so you
+          don&apos;t accidentally record it twice.
         </AlertDescription>
       </Alert>
 
