@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useBranches } from '@/context/BranchContext';
 import QueryState from '@/features/inventory/components/QueryState';
+import { useAuthStore } from '@/store/authStore';
+import { hasPermission } from '@/lib/permissions';
 import { useOrders } from '../hooks/useOrders';
 import OpenOrderDialog from '../components/OpenOrderDialog';
 import { OrderStatus } from '../../../../shared/salesTypes';
@@ -23,6 +25,8 @@ const STATUS_VARIANT: Record<
 export default function TillOrdersPage() {
   const { selectedBranchId } = useBranches();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const role = useAuthStore((s) => s.user?.role);
+  const canReviewMpesa = hasPermission(role, 'payments:confirm-mpesa');
   const {
     data: openOrders,
     isLoading,
@@ -45,6 +49,13 @@ export default function TillOrdersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {canReviewMpesa && (
+            <Button variant="outline" asChild>
+              <Link to="/sales/mpesa">
+                <Smartphone className="mr-1 h-4 w-4" /> Review M-PESA payments
+              </Link>
+            </Button>
+          )}
           <Button
             onClick={() => setDialogOpen(true)}
             disabled={!selectedBranchId}
