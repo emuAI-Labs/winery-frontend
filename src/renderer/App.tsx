@@ -141,7 +141,10 @@ export default function App() {
                 <Route path=":id" element={<OrderDetailPage />} />
               </Route>
 
-              {/* Sales: menu, M-PESA reconciliation, shifts, expenses, financial reports */}
+              {/* Sales: menu, shifts, expenses, financial reports. M-PESA
+                  review lives here too but is reached from the Till page,
+                  not the main nav — it's a manager spot-check, not a
+                  destination staff visit on its own. */}
               <Route
                 path="/sales"
                 element={
@@ -266,7 +269,14 @@ export default function App() {
                     </RequirePermission>
                   }
                 />
-                <Route path="reports" element={<InventoryReportsPage />} />
+                <Route
+                  path="reports"
+                  element={
+                    <RequirePermission permission="inventory:count">
+                      <InventoryReportsPage />
+                    </RequirePermission>
+                  }
+                />
               </Route>
             </Routes>
           </Router>

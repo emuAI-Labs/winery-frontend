@@ -11,7 +11,6 @@ import {
   LogOut,
   UtensilsCrossed,
   Menu as MenuIcon,
-  Smartphone,
   Clock,
   Wallet,
   BarChart3,
@@ -54,12 +53,6 @@ const NAV_GROUPS: NavGroup[] = [
         permission: 'inventory:manage',
       },
       {
-        to: '/sales/mpesa',
-        label: 'M-PESA reconciliation',
-        icon: Smartphone,
-        permission: 'payments:confirm-mpesa',
-      },
-      {
         to: '/sales/shifts',
         label: 'Shifts',
         icon: Clock,
@@ -79,7 +72,7 @@ const NAV_GROUPS: NavGroup[] = [
       },
       {
         to: '/sales/sync-issues',
-        label: 'Sync issues',
+        label: "Didn't save",
         icon: AlertOctagon,
         permission: 'sync:manage',
       },
@@ -125,7 +118,12 @@ const NAV_GROUPS: NavGroup[] = [
         icon: ClipboardCheck,
         permission: 'inventory:count',
       },
-      { to: '/inventory/reports', label: 'Reports', icon: ClipboardList },
+      {
+        to: '/inventory/reports',
+        label: 'Reports',
+        icon: ClipboardList,
+        permission: 'inventory:count',
+      },
     ],
   },
 ];
@@ -140,14 +138,14 @@ function ConnectivityBanner() {
       {connectivity === 'offline' && (
         <span className="flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800">
           <WifiOff className="h-3 w-3" />
-          Offline
+          No internet
           {lastCachedAt
-            ? ` — data as of ${new Date(lastCachedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+            ? ` — showing data from ${new Date(lastCachedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
             : ''}
         </span>
       )}
       {outboxPendingCount > 0 && (
-        <Badge variant="secondary">{outboxPendingCount} syncing</Badge>
+        <Badge variant="secondary">{outboxPendingCount} saving…</Badge>
       )}
     </div>
   );
@@ -165,19 +163,28 @@ export default function AppShell() {
   })).filter((group) => group.items.length > 0);
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <aside className="flex w-60 shrink-0 flex-col overflow-y-auto border-r bg-muted/30">
-        <div className="px-4 py-5">
-          <h2 className="text-lg font-semibold">Winery POS</h2>
-          <p className="text-xs text-muted-foreground">{user?.fullName}</p>
+    <div className="flex h-screen overflow-hidden bg-background">
+      <aside className="flex w-64 shrink-0 flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+        <div className="flex items-center gap-2.5 px-5 py-5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-active text-sm font-bold text-white">
+            P
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold leading-tight tracking-tight">
+              POS
+            </h2>
+            <p className="truncate text-xs text-sidebar-muted">
+              {user?.fullName}
+            </p>
+          </div>
         </div>
-        <nav className="flex-1 space-y-4 px-2">
+        <nav className="flex-1 space-y-5 px-3 pt-2">
           {visibleGroups.map((group) => (
             <div key={group.label}>
-              <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-sidebar-muted">
                 {group.label}
               </p>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {group.items.map((item) => (
                   <NavLink
                     key={item.to}
@@ -185,29 +192,46 @@ export default function AppShell() {
                     end={item.to === '/inventory'}
                     className={({ isActive }) =>
                       cn(
-                        'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                        'group relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                         isActive
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-foreground/80 hover:bg-accent hover:text-accent-foreground',
+                          ? 'bg-sidebar-accent text-white'
+                          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
                       )
                     }
                   >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
+                    {({ isActive }) => (
+                      <>
+                        <span
+                          className={cn(
+                            'absolute -left-3 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-sidebar-active transition-opacity',
+                            isActive ? 'opacity-100' : 'opacity-0',
+                          )}
+                        />
+                        <item.icon
+                          className={cn(
+                            'h-4 w-4 shrink-0',
+                            isActive
+                              ? 'text-sidebar-active'
+                              : 'text-sidebar-muted group-hover:text-sidebar-foreground',
+                          )}
+                        />
+                        {item.label}
+                      </>
+                    )}
                   </NavLink>
                 ))}
               </div>
             </div>
           ))}
         </nav>
-        <div className="border-t p-3">
-          <p className="truncate text-xs capitalize text-muted-foreground">
+        <div className="border-t border-sidebar-border p-3">
+          <p className="truncate px-2 text-xs capitalize text-sidebar-muted">
             {user?.role}
           </p>
           <Button
             variant="ghost"
             size="sm"
-            className="mt-2 w-full justify-start gap-2 px-2"
+            className="mt-1.5 w-full justify-start gap-2 px-2 text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
             onClick={() => logout()}
           >
             <LogOut className="h-4 w-4" />
@@ -216,10 +240,10 @@ export default function AppShell() {
         </div>
       </aside>
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex items-center justify-between border-b px-6 py-3">
+        <header className="flex items-center justify-between border-b bg-card/80 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/60">
           <NavLink
             to="/"
-            className="text-sm text-muted-foreground hover:text-foreground"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             ← Home
           </NavLink>
