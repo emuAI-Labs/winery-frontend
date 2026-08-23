@@ -35,7 +35,7 @@ export default function PaymentDialog({
 
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const [amount, setAmount] = useState('');
-  const [mpesaCode, setMpesaCode] = useState('');
+  const [referenceCode, setReferenceCode] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const covered =
@@ -48,7 +48,7 @@ export default function PaymentDialog({
     if (!open) return;
     setMethod('cash');
     setAmount(remaining > 0 ? (remaining / 100).toFixed(2) : '');
-    setMpesaCode('');
+    setReferenceCode('');
     setError(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only reset when the dialog opens
   }, [open]);
@@ -70,7 +70,7 @@ export default function PaymentDialog({
       );
       return;
     }
-    if (method === 'mpesa' && !mpesaCode.trim()) {
+    if (method === 'mpesa' && !referenceCode.trim()) {
       setError('Enter the M-PESA confirmation code.');
       return;
     }
@@ -78,7 +78,10 @@ export default function PaymentDialog({
       await recordPayment.mutateAsync({
         method,
         amountCents,
-        mpesaCode: method === 'mpesa' ? mpesaCode.trim() : undefined,
+        mpesaCode:
+          method === 'mpesa' || method === 'card'
+            ? referenceCode.trim() || undefined
+            : undefined,
       });
       const newRemaining = remaining - amountCents;
       toast.success(
@@ -90,7 +93,7 @@ export default function PaymentDialog({
         onOpenChange(false);
       } else {
         setAmount((newRemaining / 100).toFixed(2));
-        setMpesaCode('');
+        setReferenceCode('');
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong.');
@@ -135,17 +138,31 @@ export default function PaymentDialog({
 
           {method === 'mpesa' && (
             <div className="space-y-2">
-              <Label htmlFor="mpesaCode">M-PESA confirmation code</Label>
+              <Label htmlFor="referenceCode">M-PESA confirmation code</Label>
               <Input
-                id="mpesaCode"
-                value={mpesaCode}
-                onChange={(e) => setMpesaCode(e.target.value.toUpperCase())}
+                id="referenceCode"
+                value={referenceCode}
+                onChange={(e) => setReferenceCode(e.target.value.toUpperCase())}
                 placeholder="QAX1B2C3D4"
               />
               <p className="text-xs text-muted-foreground">
-                Recorded immediately and counts toward the bill — a manager
-                reconciles the code afterwards, no need to wait here.
+                This gets checked against the M-PESA statement later — no need
+                to wait here, just enter it as the customer reads it out.
               </p>
+            </div>
+          )}
+
+          {method === 'card' && (
+            <div className="space-y-2">
+              <Label htmlFor="referenceCode">
+                Card transaction code (optional)
+              </Label>
+              <Input
+                id="referenceCode"
+                value={referenceCode}
+                onChange={(e) => setReferenceCode(e.target.value.toUpperCase())}
+                placeholder="From the card machine receipt"
+              />
             </div>
           )}
 
