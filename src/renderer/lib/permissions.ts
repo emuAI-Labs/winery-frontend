@@ -26,7 +26,15 @@ export type SalesPermission =
   | 'reports:manage'
   | 'sync:manage';
 
-export type Permission = InventoryPermission | SalesPermission;
+export type AssetsPermission =
+  | 'assets:read'
+  | 'assets:manage'
+  | 'assets:report-loss'
+  | 'maintenance:read'
+  | 'maintenance:manage'
+  | 'audit:read';
+
+export type Permission = InventoryPermission | SalesPermission | AssetsPermission;
 
 const ROLE_RANK: Record<UserRole, number> = {
   waiter: 0,
@@ -61,6 +69,13 @@ const PERMISSION_MIN_ROLE: Record<Permission, UserRole> = {
   'reports:read': 'manager',
   'reports:manage': 'manager',
   'sync:manage': 'manager',
+
+  'assets:read': 'supervisor',
+  'assets:report-loss': 'bartender',
+  'assets:manage': 'manager',
+  'maintenance:read': 'supervisor',
+  'maintenance:manage': 'supervisor',
+  'audit:read': 'manager',
 };
 
 export function hasPermission(
