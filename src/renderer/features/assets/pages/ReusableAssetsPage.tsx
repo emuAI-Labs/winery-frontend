@@ -92,7 +92,7 @@ export default function ReusableAssetsPage() {
                 <TableCell>{formatCents(type.unitValueCents)}</TableCell>
                 <TableCell>
                   {selectedBranchId
-                    ? (type.branchStock?.quantity ?? 0)
+                    ? (type.branchStock?.quantityOnHand ?? 0)
                     : 'Select a branch'}
                 </TableCell>
                 {(canManage || canReportLoss) && (

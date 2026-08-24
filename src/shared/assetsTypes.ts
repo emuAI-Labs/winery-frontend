@@ -26,7 +26,12 @@ export interface Asset {
   createdAt: string;
 }
 
-export type ReusableAssetCategory = 'glassware' | 'keg' | 'crate' | 'tool' | 'other';
+export type ReusableAssetCategory =
+  | 'glassware'
+  | 'keg'
+  | 'crate'
+  | 'tool'
+  | 'other';
 
 export interface ReusableAssetType {
   id: string;
@@ -35,10 +40,15 @@ export interface ReusableAssetType {
   unitValueCents: number;
   isActive: boolean;
   /** only present when the list was fetched with a branchId filter */
-  branchStock?: { branchId: string; quantity: number } | null;
+  branchStock?: { branchId: string; quantityOnHand: number } | null;
 }
 
-export type ReusableAssetMovementType = 'acquired' | 'lost' | 'broken' | 'adjusted';
+export type ReusableAssetMovementType =
+  | 'acquired'
+  | 'lost'
+  | 'broken'
+  | 'returned_from_supplier'
+  | 'count_adjustment';
 
 export interface ReusableAssetMovement {
   id: string;

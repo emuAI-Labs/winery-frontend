@@ -13,7 +13,7 @@ export function useAuditLog(filters: {
     queryFn: () =>
       apiRequest<{ items: AuditLogRow[]; total: number }>({
         method: 'GET',
-        path: '/audit',
+        path: '/audit-logs',
         query: {
           action: filters.action,
           actorId: filters.actorId,
