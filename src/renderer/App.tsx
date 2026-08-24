@@ -35,6 +35,10 @@ import ShiftsOversightPage from '@/features/shifts/pages/ShiftsOversightPage';
 import ExpensesPage from '@/features/expenses/pages/ExpensesPage';
 import FinancialReportsPage from '@/features/reports/pages/FinancialReportsPage';
 import SyncIssuesPage from '@/features/sync/pages/SyncIssuesPage';
+import AssetRegisterPage from '@/features/assets/pages/AssetRegisterPage';
+import ReusableAssetsPage from '@/features/assets/pages/ReusableAssetsPage';
+import MaintenancePage from '@/features/assets/pages/MaintenancePage';
+import AuditLogPage from '@/features/audit/pages/AuditLogPage';
 import './globals.css';
 
 /** Once a queued outbox item finally syncs, the main process broadcasts the
@@ -274,6 +278,59 @@ export default function App() {
                   element={
                     <RequirePermission permission="inventory:count">
                       <InventoryReportsPage />
+                    </RequirePermission>
+                  }
+                />
+              </Route>
+
+              {/* Assets: fixed asset register, reusable stock, maintenance */}
+              <Route
+                path="/assets"
+                element={
+                  <RequireAuth>
+                    <AppShell />
+                  </RequireAuth>
+                }
+              >
+                <Route
+                  path="register"
+                  element={
+                    <RequirePermission permission="assets:read">
+                      <AssetRegisterPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="reusable"
+                  element={
+                    <RequirePermission permission="assets:read">
+                      <ReusableAssetsPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="maintenance"
+                  element={
+                    <RequirePermission permission="maintenance:read">
+                      <MaintenancePage />
+                    </RequirePermission>
+                  }
+                />
+              </Route>
+
+              <Route
+                path="/audit"
+                element={
+                  <RequireAuth>
+                    <AppShell />
+                  </RequireAuth>
+                }
+              >
+                <Route
+                  index
+                  element={
+                    <RequirePermission permission="audit:read">
+                      <AuditLogPage />
                     </RequirePermission>
                   }
                 />

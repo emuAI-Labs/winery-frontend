@@ -16,6 +16,9 @@ import {
   BarChart3,
   WifiOff,
   AlertOctagon,
+  Archive,
+  Wrench,
+  ScrollText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -123,6 +126,35 @@ const NAV_GROUPS: NavGroup[] = [
         label: 'Reports',
         icon: ClipboardList,
         permission: 'inventory:count',
+      },
+    ],
+  },
+  {
+    label: 'Assets',
+    items: [
+      {
+        to: '/assets/register',
+        label: 'Asset register',
+        icon: Archive,
+        permission: 'assets:read',
+      },
+      {
+        to: '/assets/reusable',
+        label: 'Glassware & kegs',
+        icon: Package,
+        permission: 'assets:read',
+      },
+      {
+        to: '/assets/maintenance',
+        label: 'Maintenance',
+        icon: Wrench,
+        permission: 'maintenance:read',
+      },
+      {
+        to: '/audit',
+        label: 'Audit log',
+        icon: ScrollText,
+        permission: 'audit:read',
       },
     ],
   },
