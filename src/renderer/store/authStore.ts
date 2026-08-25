@@ -66,9 +66,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   changePassword: async (currentPassword, newPassword) => {
     set({ lastError: null });
     const res = await window.auth.changePassword(currentPassword, newPassword);
-    if (res.ok && res.data) {
-      const { user } = res.data;
-      set({ user, status: statusForUser(user) });
+    if (res.ok) {
+      // The backend's response here is just a confirmation message, not an
+      // updated user — mirror what authService already does on the main
+      // side and flip the flag on the user we already have, rather than
+      // trusting a `user` key that was never in the response body.
+      set((state) => {
+        const user = state.user ? { ...state.user, mustChangePassword: false } : null;
+        return { user, status: statusForUser(user) };
+      });
       return true;
     }
     set({ lastError: res.error });

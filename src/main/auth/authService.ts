@@ -207,8 +207,10 @@ class AuthService {
   async changePassword(
     currentPassword: string,
     newPassword: string,
-  ): Promise<ApiResponse<{ user: AuthUser }>> {
-    const res = await this.authorizedRequest<{ user: AuthUser }>({
+  ): Promise<ApiResponse<{ message: string }>> {
+    // The backend returns just a confirmation message here, not an updated
+    // user — patch our own cached copy instead of expecting one back.
+    const res = await this.authorizedRequest<{ message: string }>({
       method: 'POST',
       path: '/auth/change-password',
       body: { currentPassword, newPassword },

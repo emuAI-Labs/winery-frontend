@@ -45,7 +45,7 @@ const authHandler = {
   changePassword: (
     currentPassword: string,
     newPassword: string,
-  ): Promise<ApiResponse<{ user: AuthUser }>> =>
+  ): Promise<ApiResponse<{ message: string }>> =>
     ipcRenderer.invoke('auth:changePassword', currentPassword, newPassword),
   currentUser: (): Promise<AuthUser | null> =>
     ipcRenderer.invoke('auth:currentUser'),
