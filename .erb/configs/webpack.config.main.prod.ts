@@ -62,6 +62,12 @@ const configuration: webpack.Configuration = {
       NODE_ENV: 'production',
       DEBUG_PROD: false,
       START_MINIMIZED: false,
+      // Baked in at build time so a packaged/installed build points at the
+      // right backend without needing WINERY_API_BASE_URL set in whatever
+      // environment later launches the installed app (which a real end
+      // user's machine never will) — httpClient.ts's `process.env` read
+      // becomes this literal string once webpack processes it here.
+      WINERY_API_BASE_URL: 'http://localhost:3000/api',
     }),
 
     new webpack.DefinePlugin({

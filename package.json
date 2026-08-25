@@ -203,6 +203,7 @@
   "build": {
     "productName": "POS",
     "appId": "org.erb.ElectronReact",
+    "npmRebuild": false,
     "asar": true,
     "afterSign": ".erb/scripts/notarize.js",
     "asarUnpack": "**\\*.{node,dll}",
