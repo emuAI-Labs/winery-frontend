@@ -5,6 +5,9 @@ import { _electron as electron } from 'playwright-core';
 import * as readline from 'node:readline';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 
 const APP_DIR = path.resolve(import.meta.dirname, '../../../release/app');
 const SHOT_DIR = process.env.SCREENSHOT_DIR || '/tmp/shots';
@@ -13,10 +16,11 @@ fs.mkdirSync(SHOT_DIR, { recursive: true });
 let app = null;
 let page = null;
 
-const electronBin = path.resolve(
-  import.meta.dirname,
-  '../../../node_modules/electron/dist/electron',
-);
+// require('electron') (not a hardcoded 'dist/electron' path) so this
+// resolves correctly cross-platform — on Windows the binary is
+// dist/electron.exe, and the electron package's own path.txt already
+// knows that.
+const electronBin = require('electron');
 
 const COMMANDS = {
   async launch() {
