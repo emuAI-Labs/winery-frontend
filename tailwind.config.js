@@ -57,6 +57,14 @@ module.exports = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      boxShadow: {
+        // Diffused, low-opacity elevation (large blur, minimal spread)
+        // instead of Tailwind's sharper defaults — closer to how macOS
+        // panels/popovers/dialogs sit above the desktop.
+        mac: '0 1px 2px 0 rgb(0 0 0 / 0.04), 0 12px 28px -8px rgb(0 0 0 / 0.16)',
+        'mac-sm':
+          '0 1px 1px 0 rgb(0 0 0 / 0.03), 0 4px 10px -4px rgb(0 0 0 / 0.10)',
+      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
