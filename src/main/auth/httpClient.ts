@@ -16,6 +16,7 @@ interface BackendErrorBody {
 }
 
 const KNOWN_CODES = new Set<AuthErrorCode>([
+  'BAD_REQUEST',
   'VALIDATION_ERROR',
   'UNAUTHORIZED',
   'TOKEN_EXPIRED',
@@ -26,7 +27,9 @@ const KNOWN_CODES = new Set<AuthErrorCode>([
   'FORBIDDEN',
   'NOT_FOUND',
   'CONFLICT',
+  'UNPROCESSABLE',
   'TOO_MANY_REQUESTS',
+  'INTERNAL_ERROR',
   'SERVICE_UNAVAILABLE',
 ]);
 

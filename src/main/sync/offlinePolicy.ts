@@ -324,6 +324,35 @@ const RULES: PolicyRule[] = [
     policy: 'network-only',
     invalidates: () => [],
   },
+
+  // --- staff account management: always live. There's no sensible echo for
+  // a created user (server assigns the id, and a manager needs to know
+  // immediately whether it actually landed), and it's not a till-blocking
+  // action worth queuing blind while offline. ---
+  {
+    method: 'POST',
+    pattern: /^\/users$/,
+    policy: 'network-only',
+    invalidates: () => [['users']],
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/users\/([^/]+)$/,
+    policy: 'network-only',
+    invalidates: ([, id]) => [['users'], ['users', 'detail', id]],
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/users\/([^/]+)\/status$/,
+    policy: 'network-only',
+    invalidates: ([, id]) => [['users'], ['users', 'detail', id]],
+  },
+  {
+    method: 'POST',
+    pattern: /^\/users\/([^/]+)\/reset-password$/,
+    policy: 'network-only',
+    invalidates: () => [['users']],
+  },
 ];
 
 const DEFAULT_RULE: PolicyRule = {

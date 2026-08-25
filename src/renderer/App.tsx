@@ -39,6 +39,7 @@ import AssetRegisterPage from '@/features/assets/pages/AssetRegisterPage';
 import ReusableAssetsPage from '@/features/assets/pages/ReusableAssetsPage';
 import MaintenancePage from '@/features/assets/pages/MaintenancePage';
 import AuditLogPage from '@/features/audit/pages/AuditLogPage';
+import UsersPage from '@/features/users/pages/UsersPage';
 import './globals.css';
 
 /** Once a queued outbox item finally syncs, the main process broadcasts the
@@ -331,6 +332,26 @@ export default function App() {
                   element={
                     <RequirePermission permission="audit:read">
                       <AuditLogPage />
+                    </RequirePermission>
+                  }
+                />
+              </Route>
+
+              {/* Staff accounts: superadmin/owner/manager only, per the
+                  backend's ROLE_MANAGEABLE_ROLES gate */}
+              <Route
+                path="/users"
+                element={
+                  <RequireAuth>
+                    <AppShell />
+                  </RequireAuth>
+                }
+              >
+                <Route
+                  index
+                  element={
+                    <RequirePermission permission="users:read">
+                      <UsersPage />
                     </RequirePermission>
                   }
                 />

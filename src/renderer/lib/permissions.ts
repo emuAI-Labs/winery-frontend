@@ -34,7 +34,18 @@ export type AssetsPermission =
   | 'maintenance:manage'
   | 'audit:read';
 
-export type Permission = InventoryPermission | SalesPermission | AssetsPermission;
+export type UsersPermission =
+  | 'users:read'
+  | 'users:create'
+  | 'users:update'
+  | 'users:deactivate'
+  | 'users:reset-password';
+
+export type Permission =
+  | InventoryPermission
+  | SalesPermission
+  | AssetsPermission
+  | UsersPermission;
 
 const ROLE_RANK: Record<UserRole, number> = {
   waiter: 0,
@@ -76,6 +87,17 @@ const PERMISSION_MIN_ROLE: Record<Permission, UserRole> = {
   'maintenance:read': 'supervisor',
   'maintenance:manage': 'supervisor',
   'audit:read': 'manager',
+
+  // Mirrors the backend's ROLE_MANAGEABLE_ROLES gate (src/config/rbac.ts in
+  // winery-pos-backend): supervisors can view staff but not manage any of
+  // them, so users:read sits a rank below the create/update/deactivate/
+  // reset-password group. The backend re-checks all of this server-side —
+  // this is UI convenience only, see manageableRoles() below.
+  'users:read': 'supervisor',
+  'users:create': 'manager',
+  'users:update': 'manager',
+  'users:deactivate': 'manager',
+  'users:reset-password': 'manager',
 };
 
 export function hasPermission(
@@ -84,4 +106,24 @@ export function hasPermission(
 ): boolean {
   if (!role) return false;
   return ROLE_RANK[role] >= ROLE_RANK[PERMISSION_MIN_ROLE[permission]];
+}
+
+/** Which roles `actorRole` is allowed to create/edit/deactivate/reset —
+ * strictly below it in the hierarchy, per the backend's
+ * ROLE_MANAGEABLE_ROLES. 'superadmin' is never assignable through the API
+ * regardless of actor (seed-only), so it's excluded even for a superadmin
+ * actor. Used to populate the role picker and to hide manage actions on
+ * rows the actor isn't allowed to touch — the backend enforces the real
+ * rule on every mutating call regardless. */
+export function manageableRoles(actorRole: UserRole | undefined): UserRole[] {
+  if (!actorRole) return [];
+  const ALL_MANAGEABLE: UserRole[] = [
+    'owner',
+    'manager',
+    'supervisor',
+    'bartender',
+    'waiter',
+  ];
+  const actorRank = ROLE_RANK[actorRole];
+  return ALL_MANAGEABLE.filter((role) => ROLE_RANK[role] < actorRank);
 }

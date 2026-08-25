@@ -19,6 +19,7 @@ import {
   Archive,
   Wrench,
   ScrollText,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -155,6 +156,17 @@ const NAV_GROUPS: NavGroup[] = [
         label: 'Audit log',
         icon: ScrollText,
         permission: 'audit:read',
+      },
+    ],
+  },
+  {
+    label: 'Admin',
+    items: [
+      {
+        to: '/users',
+        label: 'Staff accounts',
+        icon: Users,
+        permission: 'users:read',
       },
     ],
   },

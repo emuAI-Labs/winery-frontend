@@ -24,6 +24,7 @@ export interface AuthUser {
 }
 
 export type AuthErrorCode =
+  | 'BAD_REQUEST'
   | 'VALIDATION_ERROR'
   | 'UNAUTHORIZED'
   | 'TOKEN_EXPIRED'
@@ -34,7 +35,9 @@ export type AuthErrorCode =
   | 'FORBIDDEN'
   | 'NOT_FOUND'
   | 'CONFLICT'
+  | 'UNPROCESSABLE'
   | 'TOO_MANY_REQUESTS'
+  | 'INTERNAL_ERROR'
   | 'SERVICE_UNAVAILABLE'
   | 'NETWORK_ERROR'
   | 'UNKNOWN_ERROR';
